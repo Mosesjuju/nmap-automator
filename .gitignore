@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# NMAP output files
+nmap_results/
+*.xml
+*.txt
+
+# IDE
+.vscode/
+.idea/
+
+# Environment
+.env
+venv/
