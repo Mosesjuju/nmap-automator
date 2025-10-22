@@ -134,6 +134,39 @@ python3 nmap_automator.py example.com -o /path/to/your/nmap_results
 - If you don't need XML output, use `--no-xml` flag
 - Container name changes on each run unless specified with `--name`
 
+# 📄 Exporting PDF reports from WebMap
+
+WebMap can generate PDF reports from your imported Nmap XML results. There are two common ways to export PDFs:
+
+1) From the Web UI (recommended)
+  - Log in to the WebMap web UI at http://localhost:8000 using your token
+  - Open the host or report view you want to export
+  - Click the "Export" or "PDF" button on the report toolbar (location depends on WebMap version)
+  - The UI will generate and download a PDF of the current report
+
+2) From inside the container (headless / automated)
+  - WebMap stores generated HTML reports under `/opt/xml` (same path as mounted results). If you need to convert HTML to PDF yourself, use a headless browser or wkhtmltopdf.
+
+  Example: using Chromium headless (recommended for modern HTML/CSS support):
+
+```bash
+# run inside the host (adjust paths as needed)
+docker exec -ti container_name bash -c "apt-get update && apt-get install -y chromium" \
+  && docker exec -ti container_name chromium --headless --disable-gpu --print-to-pdf=/opt/xml/reports/scan_report.pdf /opt/xml/reports/scan_report.html
+```
+
+  Example: using wkhtmltopdf (if available):
+
+```bash
+docker exec -ti container_name wkhtmltopdf /opt/xml/reports/scan_report.html /opt/xml/reports/scan_report.pdf
+```
+
+  Notes and tips:
+  - Generated PDFs will be saved under the mounted `nmap_results` directory on the host (e.g., `/home/kali/NMAP/nmap_results/reports`).
+  - If the container does not include `chromium` or `wkhtmltopdf`, you can install them inside the container or run the conversion on the host by copying the HTML files out of the container.
+  - For automation, add a small script that finds the latest report HTML and converts it to PDF.
+
+
 # Extending
 
 If you want additional features such as scheduled scans or a safer interactive authorization prompt, I can add them.
