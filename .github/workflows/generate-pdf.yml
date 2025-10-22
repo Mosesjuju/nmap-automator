@@ -1,0 +1,39 @@
+name: Generate PDF Reports
+
+on:
+  push:
+    paths:
+      - 'nmap_results/**'
+  release:
+    types: [published]
+
+jobs:
+  convert-and-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python (for helper script)
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Make script executable
+        run: |
+          chmod +x ./scripts/convert_reports.sh
+
+      - name: Install wkhtmltopdf
+        run: |
+          sudo apt-get update && sudo apt-get install -y wkhtmltopdf
+        continue-on-error: true
+
+      - name: Run convert script
+        run: |
+          ./scripts/convert_reports.sh ./nmap_results ./nmap_results/reports || true
+
+      - name: Upload PDF artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nmap-pdf-reports
+          path: nmap_results/reports
