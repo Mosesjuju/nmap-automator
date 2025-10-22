@@ -4,10 +4,25 @@ import os
 import sys
 import subprocess
 import threading
+import logging
+import schedule
+import time
+import xml.etree.ElementTree as ET
 from queue import Queue
 from datetime import datetime
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('nmap_automator.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 
 def check_nmap_available():
@@ -38,13 +53,65 @@ def build_nmap_command(target, ports=None, scan_type="-sV", extra_args=None, out
     return args
 
 
+def parse_nmap_xml(xml_file):
+    """Parse nmap XML output to detect interesting findings that warrant escalation."""
+    try:
+        tree = ET.parse(xml_file)
+        root = tree.getroot()
+        
+        interesting_findings = {
+            'open_ports': [],
+            'vulnerabilities': [],
+            'services': []
+        }
+        
+        # Check for open ports
+        for port in root.findall('.//port[@state="open"]'):
+            port_id = port.get('portid')
+            service = port.find('service')
+            if service is not None:
+                service_name = service.get('name', 'unknown')
+                interesting_findings['open_ports'].append((port_id, service_name))
+                
+                # Check for potentially interesting services
+                if service_name in ['http', 'https', 'ftp', 'ssh', 'telnet', 'mysql', 'mssql']:
+                    interesting_findings['services'].append(service_name)
+        
+        # Check for vulnerabilities in script output
+        for script in root.findall('.//script'):
+            if 'vuln' in script.get('id', ''):
+                interesting_findings['vulnerabilities'].append(script.get('id'))
+                
+        return interesting_findings
+    except Exception as e:
+        logger.error(f"Error parsing XML file {xml_file}: {e}")
+        return None
+
+def auto_escalate_scan(target, initial_findings, current_args):
+    """Determine if and how to escalate the scan based on findings."""
+    escalation_args = []
+    
+    # If we found open ports, do service detection
+    if initial_findings['open_ports'] and '-sV' not in current_args:
+        escalation_args.append('-sV')
+    
+    # If we found web services, run web-specific scripts
+    if any(s in ['http', 'https'] for s in initial_findings['services']):
+        escalation_args.append('--script=http-enum,http-title,http-headers')
+    
+    # If we found any services, try vulnerability scanning
+    if initial_findings['services']:
+        escalation_args.append('--script=vuln')
+    
+    return escalation_args
+
 def worker(queue, dry_run=False):
     while True:
         item = queue.get()
         if item is None:
             break
         cmd, target = item
-        print(f"[+] Running: {' '.join(cmd)}")
+        logger.info(f"Running: {' '.join(cmd)}")
         if dry_run:
             queue.task_done()
             continue
@@ -52,11 +119,27 @@ def worker(queue, dry_run=False):
         try:
             proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             if proc.returncode != 0:
-                print(f"[!] nmap returned code {proc.returncode} for {target}: {proc.stderr.strip()}")
+                logger.error(f"nmap returned code {proc.returncode} for {target}: {proc.stderr.strip()}")
             else:
-                print(f"[+] Finished scan for {target}")
+                logger.info(f"Finished scan for {target}")
+                
+                # Check for XML output and parse results
+                xml_file = next((arg for i, arg in enumerate(cmd) if cmd[i-1] == '-oX'), None)
+                if xml_file:
+                    findings = parse_nmap_xml(xml_file)
+                    if findings and (findings['open_ports'] or findings['vulnerabilities']):
+                        logger.info(f"Found interesting results for {target}: {len(findings['open_ports'])} open ports, "
+                                  f"{len(findings['vulnerabilities'])} potential vulnerabilities")
+                        escalation_args = auto_escalate_scan(target, findings, cmd)
+                        if escalation_args:
+                            logger.info(f"Escalating scan for {target} with additional arguments: {' '.join(escalation_args)}")
+                            # Add escalated scan to queue
+                            new_cmd = cmd[:]  # Copy original command
+                            new_cmd.extend(escalation_args)
+                            queue.put((new_cmd, target))
+                
         except Exception as e:
-            print(f"[!] Error running nmap for {target}: {e}")
+            logger.error(f"Error running nmap for {target}: {e}")
 
         queue.task_done()
 
@@ -77,8 +160,48 @@ def ensure_output_dir(path):
         os.makedirs(path, exist_ok=True)
 
 
+def run_scheduled_scan(args, targets, extra_args_str):
+    """Run a single iteration of the scan."""
+    logger.info("Starting scheduled scan iteration")
+    
+    # prepare queue and worker threads
+    q = Queue()
+    threads = []
+    for _ in range(max(1, args.threads)):
+        t = threading.Thread(target=worker, args=(q, args.dry_run), daemon=True)
+        t.start()
+        threads.append(t)
+
+    # enqueue commands
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    for tgt in targets:
+        safe_name = tgt.replace('/', '_').replace(':', '_')
+        basename = os.path.join(args.outdir, f"{safe_name}_{timestamp}")
+        cmd = build_nmap_command(tgt, ports=args.ports, scan_type="", extra_args=extra_args_str, 
+                               output_basename=basename, xml=not args.no_xml)
+        logger.info(f"Queuing command for {tgt}: {' '.join(cmd)}")
+        q.put((cmd, tgt))
+
+    # wait for queue
+    try:
+        q.join()
+    except KeyboardInterrupt:
+        logger.warning("Interrupted. Shutting down workers...")
+
+    # stop workers
+    for _ in threads:
+        q.put(None)
+    for t in threads:
+        t.join(timeout=1)
+
+    logger.info("Scan iteration completed")
+
 def main():
     parser = argparse.ArgumentParser(description="nmap_automator: run multiple nmap scans with basic orchestration")
+    
+    # Add new Scheduling group
+    sgroup = parser.add_argument_group('Scheduling')
+    sgroup.add_argument("--schedule", help="Schedule for recurring scans (e.g., '1h' for hourly, '1d' for daily)")
     
     # TARGET SPECIFICATION
     tgroup = parser.add_argument_group('Target Selection')
@@ -285,29 +408,33 @@ def main():
         with open(log_path, 'a') as lf:
             lf.write(f"{ts} - {msg}\n")
 
-    # enqueue commands
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    for tgt in targets:
-        safe_name = tgt.replace('/', '_').replace(':', '_')
-        basename = os.path.join(args.outdir, f"{safe_name}_{timestamp}")
-        cmd = build_nmap_command(tgt, ports=args.ports, scan_type="", extra_args=extra_args_str, 
-                               output_basename=basename, xml=not args.no_xml)
-        log(f"Command for {tgt}: {' '.join(cmd)}")
-        q.put((cmd, tgt))
-
-    # wait for queue
-    try:
-        q.join()
-    except KeyboardInterrupt:
-        print("Interrupted. Shutting down workers...")
-
-    # stop workers
-    for _ in threads:
-        q.put(None)
-    for t in threads:
-        t.join(timeout=1)
-
-    print("All scans completed.")
+    if args.schedule:
+        # Parse schedule interval
+        interval = args.schedule.lower()
+        if interval.endswith('h'):
+            schedule.every(int(interval[:-1])).hours.do(
+                run_scheduled_scan, args, targets, extra_args_str)
+        elif interval.endswith('d'):
+            schedule.every(int(interval[:-1])).days.do(
+                run_scheduled_scan, args, targets, extra_args_str)
+        else:
+            logger.error("Invalid schedule format. Use '1h' for hourly or '1d' for daily.")
+            sys.exit(1)
+        
+        logger.info(f"Starting scheduled scans with interval: {interval}")
+        # Run first scan immediately
+        run_scheduled_scan(args, targets, extra_args_str)
+        
+        # Run schedule loop
+        try:
+            while True:
+                schedule.run_pending()
+                time.sleep(60)  # Check every minute
+        except KeyboardInterrupt:
+            logger.info("Scheduled scans stopped by user")
+    else:
+        # Single run mode
+        run_scheduled_scan(args, targets, extra_args_str)
 
 
 if __name__ == '__main__':
