@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - 'nmap_results/**'
+      - 'ci_test_reports/**'
+  workflow_dispatch: {}
   release:
     types: [published]
 
@@ -28,8 +30,13 @@ jobs:
           sudo apt-get update && sudo apt-get install -y wkhtmltopdf
         continue-on-error: true
 
-      - name: Run convert script
+      - name: Run convert script (check both nmap_results and ci_test_reports)
         run: |
+          mkdir -p ./nmap_results/reports
+          # copy any CI test reports into nmap_results for conversion
+          if [ -d ./ci_test_reports ]; then
+            cp -r ./ci_test_reports/*.html ./nmap_results/ 2>/dev/null || true
+          fi
           ./scripts/convert_reports.sh ./nmap_results ./nmap_results/reports || true
 
       - name: Upload PDF artifacts
