@@ -52,6 +52,14 @@ A feature-rich Python3 CLI wrapper for nmap that supports all major nmap functio
 - `--reason`: Port state reasons
 - `--open`: Show only open ports
 
+### AI-Powered Analysis
+- OpenAI integration for vulnerability assessment
+- Automated CVE analysis and risk scoring
+- Intelligent escalation recommendations
+- `--openai-key`: Set OpenAI API key (or use OPENAI_API_KEY env var)
+- Smart detection of critical vulnerabilities
+- Metasploit integration suggestions
+
 ## Usage Examples
 
 Basic stealth scan with version detection:
@@ -77,6 +85,12 @@ python3 nmap_automator.py target.com -sS -f -D decoy1,decoy2 --data-length 24
 Preview commands without running (dry-run):
 ```bash
 python3 nmap_automator.py example.com -sS -A -p- --script vuln --dry-run
+```
+
+Vulnerability analysis with AI assistance:
+```bash
+export OPENAI_API_KEY='your-api-key'
+python3 nmap_automator.py target.com -sV --script vuln -A --openai-key "$OPENAI_API_KEY"
 ```
 
 Safety and legality
