@@ -51,3 +51,48 @@ Metasploit Module Suggestions:
 2025-10-22 10:02:22,054 - INFO - Queuing command for localhost: nmap -p 80 -sS -oN nmap_results/localhost_20251022_100222.txt -oX nmap_results/localhost_20251022_100222.xml localhost
 2025-10-22 10:02:22,057 - INFO - Running: nmap -p 80 -sS -oN nmap_results/localhost_20251022_100222.txt -oX nmap_results/localhost_20251022_100222.xml localhost
 2025-10-22 10:02:22,063 - INFO - Scan iteration completed
+2025-10-22 11:54:25,782 - ERROR - Error during vulnerability analysis: 
+
+You tried to access openai.ChatCompletion, but this is no longer supported in openai>=1.0.0 - see the README at https://github.com/openai/openai-python for the API.
+
+You can run `openai migrate` to automatically upgrade your codebase to use the 1.0.0 interface. 
+
+Alternatively, you can pin your installation to the old version, e.g. `pip install openai==0.28`
+
+A detailed migration guide is available here: https://github.com/openai/openai-python/discussions/742
+
+2025-10-22 11:55:07,511 - ERROR - Error during vulnerability analysis: 
+
+You tried to access openai.ChatCompletion, but this is no longer supported in openai>=1.0.0 - see the README at https://github.com/openai/openai-python for the API.
+
+You can run `openai migrate` to automatically upgrade your codebase to use the 1.0.0 interface. 
+
+Alternatively, you can pin your installation to the old version, e.g. `pip install openai==0.28`
+
+A detailed migration guide is available here: https://github.com/openai/openai-python/discussions/742
+
+2025-10-22 11:57:16,097 - ERROR - Error during vulnerability analysis: 
+
+You tried to access openai.Completion, but this is no longer supported in openai>=1.0.0 - see the README at https://github.com/openai/openai-python for the API.
+
+You can run `openai migrate` to automatically upgrade your codebase to use the 1.0.0 interface. 
+
+Alternatively, you can pin your installation to the old version, e.g. `pip install openai==0.28`
+
+A detailed migration guide is available here: https://github.com/openai/openai-python/discussions/742
+
+2025-10-22 11:59:27,208 - INFO - error_code=invalid_api_key error_message='Incorrect API key provided: xai-CgYH************************************************************************T6nJ. You can find your API key at https://platform.openai.com/account/api-keys.' error_param=None error_type=invalid_request_error message='OpenAI API error received' stream_error=False
+2025-10-22 11:59:27,209 - ERROR - Error during vulnerability analysis: Incorrect API key provided: xai-CgYH************************************************************************T6nJ. You can find your API key at https://platform.openai.com/account/api-keys.
+2025-10-22 12:12:18,509 - INFO - Starting scheduled scan iteration
+2025-10-22 12:12:18,519 - INFO - Queuing command for scan.nmap.org: nmap -oN nmap_results/scan.nmap.org_20251022_121218.txt -oX nmap_results/scan.nmap.org_20251022_121218.xml scan.nmap.org
+2025-10-22 12:12:18,520 - INFO - Running: nmap -oN nmap_results/scan.nmap.org_20251022_121218.txt -oX nmap_results/scan.nmap.org_20251022_121218.xml scan.nmap.org
+2025-10-22 12:12:42,832 - INFO - Finished scan for scan.nmap.org
+2025-10-22 12:12:42,848 - INFO - Scan iteration completed
+2025-10-22 12:13:34,017 - INFO - Starting scheduled scan iteration
+2025-10-22 12:13:34,022 - INFO - Queuing command for scan.nmap.org: nmap -oN nmap_results/scan.nmap.org_20251022_121334.txt -oX nmap_results/scan.nmap.org_20251022_121334.xml scan.nmap.org
+2025-10-22 12:13:34,023 - INFO - Running: nmap -oN nmap_results/scan.nmap.org_20251022_121334.txt -oX nmap_results/scan.nmap.org_20251022_121334.xml scan.nmap.org
+2025-10-22 12:13:56,567 - INFO - Finished scan for scan.nmap.org
+2025-10-22 12:13:56,571 - INFO - Scan iteration completed
+2025-10-22 12:13:56,588 - INFO - Running: nmap -oN nmap_results/scan.nmap.org_20251022_121356.txt -oX nmap_results/scan.nmap.org_20251022_121356.xml scan.nmap.org
+2025-10-22 12:14:19,696 - INFO - Finished scan for scan.nmap.org
+2025-10-22 12:14:19,698 - INFO - Scan iteration completed

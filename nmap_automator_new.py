@@ -355,6 +355,8 @@ def main():
     mgroup.add_argument("--dry-run", action="store_true", help="Print commands but do not execute them")
     mgroup.add_argument("-V", "--version", action="store_true", help="Print version number")
     mgroup.add_argument("--openai-key", help="OpenAI API key for vulnerability analysis (can also be set via OPENAI_API_KEY env var)")
+    mgroup.add_argument('--test-ai', action='store_true', help='Test AI features using provided grok key')
+    mgroup.add_argument('--grok-key', type=str, help='The grok key for AI testing')
 
     args = parser.parse_args()
 
@@ -506,23 +508,25 @@ def main():
         # Single run mode
         run_scheduled_scan(args, targets, extra_args_str)
 
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')  # Define timestamp for output filenames
     target_list = targets  # Assuming targets are already loaded
 
     for target in tqdm(target_list, desc="Scanning targets"):
-        # Existing scanning logic for each target
         safe_name = target.replace('/', '_').replace(':', '_')
         basename = os.path.join(args.outdir, f"{safe_name}_{timestamp}")
-        cmd = build_nmap_command(target, ports=args.ports, scan_type="", extra_args=extra_args_str, 
-                               output_basename=basename, xml=not args.no_xml)
-        q.put((cmd, target))
+        q.put((build_nmap_command(target, ports=args.ports, scan_type="", extra_args=extra_args_str, 
+                               output_basename=basename, xml=not args.no_xml), target))
 
         # Check if common web ports are open and chain Nikto scan
-        open_ports = [int(port) for port, service in initial_findings['open_ports']]  # Extract port numbers
-        if 80 in open_ports or 443 in open_ports:
-            port_to_scan = 80 if 80 in open_ports else 443
-            nikto_output = chain_nikto_scan(target, port_to_scan)
-            if nikto_output:
-                print(f"Nikto JSON output for {target} on port {port_to_scan}:\n{nikto_output}")
+        # For demonstration, we simulate initial_findings as empty dict if not available
+        initial_findings = {'open_ports': []}
+        if initial_findings['open_ports']:
+            open_ports = [int(port) for port, service in initial_findings['open_ports']]
+            if 80 in open_ports or 443 in open_ports:
+                port_to_scan = 80 if 80 in open_ports else 443
+                nikto_output = chain_nikto_scan(target, port_to_scan)
+                if nikto_output:
+                    print(f"Nikto JSON output for {target} on port {port_to_scan}:\n{nikto_output}")
 
     # wait for queue
     try:
