@@ -7,9 +7,11 @@ import threading
 import logging
 import schedule
 import time
+import re
 import xml.etree.ElementTree as ET
 from queue import Queue
 from datetime import datetime
+from vuln_analyzer import VulnerabilityAnalyzer
 
 __version__ = "1.1.0"
 
@@ -62,7 +64,9 @@ def parse_nmap_xml(xml_file):
         interesting_findings = {
             'open_ports': [],
             'vulnerabilities': [],
-            'services': []
+            'services': [],
+            'cves': [],
+            'script_outputs': {}
         }
         
         # Check for open ports
@@ -77,10 +81,22 @@ def parse_nmap_xml(xml_file):
                 if service_name in ['http', 'https', 'ftp', 'ssh', 'telnet', 'mysql', 'mssql']:
                     interesting_findings['services'].append(service_name)
         
-        # Check for vulnerabilities in script output
+        # Check for vulnerabilities and collect script outputs
         for script in root.findall('.//script'):
-            if 'vuln' in script.get('id', ''):
-                interesting_findings['vulnerabilities'].append(script.get('id'))
+            script_id = script.get('id', '')
+            output = script.get('output', '')
+            
+            # Store all vulnerability-related script outputs
+            if 'vuln' in script_id:
+                interesting_findings['vulnerabilities'].append(script_id)
+                interesting_findings['script_outputs'][script_id] = output
+                
+                # Extract CVEs from output
+                cves = re.findall(r'CVE-\d{4}-\d{4,7}', output)
+                interesting_findings['cves'].extend(cves)
+        
+        # Remove duplicate CVEs
+        interesting_findings['cves'] = list(set(interesting_findings['cves']))
                 
         return interesting_findings
     except Exception as e:
@@ -130,6 +146,43 @@ def worker(queue, dry_run=False):
                     if findings and (findings['open_ports'] or findings['vulnerabilities']):
                         logger.info(f"Found interesting results for {target}: {len(findings['open_ports'])} open ports, "
                                   f"{len(findings['vulnerabilities'])} potential vulnerabilities")
+                        
+                        # Perform AI analysis if we have vulnerabilities or CVEs
+                        if findings['vulnerabilities'] or findings['cves']:
+                            try:
+                                analyzer = VulnerabilityAnalyzer()
+                                analysis = analyzer.analyze_vulnerabilities(
+                                    findings['cves'],
+                                    findings['script_outputs']
+                                )
+                                
+                                # Log AI analysis results
+                                logger.info("AI Vulnerability Analysis Results:")
+                                if 'vulnerabilities' in analysis:
+                                    for vuln in analysis['vulnerabilities']:
+                                        logger.info(f"- {vuln['description']}")
+                                        logger.info(f"  Severity: {vuln['severity']}")
+                                        logger.info(f"  Exploitability: {vuln['exploitability']}")
+                                
+                                if 'metasploit_suggestions' in analysis:
+                                    logger.info("\nMetasploit Module Suggestions:")
+                                    for module in analysis['metasploit_suggestions']:
+                                        logger.info(f"- Module: {module['module']}")
+                                        if module['description']:
+                                            logger.info(f"  Description: {module['description']}")
+                                        if module['usage_notes']:
+                                            logger.info(f"  Usage: {module['usage_notes']}")
+                                
+                                # Save detailed analysis to a separate file
+                                analysis_file = f"{xml_file}.analysis.json"
+                                with open(analysis_file, 'w') as f:
+                                    json.dump(analysis, f, indent=2)
+                                logger.info(f"Detailed analysis saved to: {analysis_file}")
+                                
+                            except Exception as e:
+                                logger.error(f"Error during AI analysis: {e}")
+                        
+                        # Continue with scan escalation
                         escalation_args = auto_escalate_scan(target, findings, cmd)
                         if escalation_args:
                             logger.info(f"Escalating scan for {target} with additional arguments: {' '.join(escalation_args)}")
@@ -285,6 +338,7 @@ def main():
     mgroup.add_argument("-t", "--threads", type=int, default=4, help="Concurrent scans (default: 4)")
     mgroup.add_argument("--dry-run", action="store_true", help="Print commands but do not execute them")
     mgroup.add_argument("-V", "--version", action="store_true", help="Print version number")
+    mgroup.add_argument("--openai-key", help="OpenAI API key for vulnerability analysis (can also be set via OPENAI_API_KEY env var)")
 
     args = parser.parse_args()
 
