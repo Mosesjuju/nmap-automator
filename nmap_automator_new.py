@@ -12,6 +12,7 @@ import xml.etree.ElementTree as ET
 from queue import Queue
 from datetime import datetime
 from vuln_analyzer import VulnerabilityAnalyzer
+from tqdm import tqdm
 
 __version__ = "1.1.0"
 
@@ -248,6 +249,21 @@ def run_scheduled_scan(args, targets, extra_args_str):
         t.join(timeout=1)
 
     logger.info("Scan iteration completed")
+
+def chain_nikto_scan(target, port):
+    """Run Nikto scan for the given target on the specified port (80 or 443) and return JSON output."""
+    try:
+        print(f"Running Nikto scan on {target}:{port}")
+        result = subprocess.run(["nikto", "-h", target, "--format", "json"], capture_output=True, text=True)
+        if result.returncode == 0:
+            return result.stdout
+        else:
+            print(f"Nikto scan failed for {target} on port {port}")
+            return None
+    except Exception as e:
+        print(f"Error running Nikto scan on {target}:{port} - {e}")
+        return None
+
 
 def main():
     parser = argparse.ArgumentParser(description="nmap_automator: run multiple nmap scans with basic orchestration")
@@ -490,6 +506,37 @@ def main():
         # Single run mode
         run_scheduled_scan(args, targets, extra_args_str)
 
+    target_list = targets  # Assuming targets are already loaded
+
+    for target in tqdm(target_list, desc="Scanning targets"):
+        # Existing scanning logic for each target
+        safe_name = target.replace('/', '_').replace(':', '_')
+        basename = os.path.join(args.outdir, f"{safe_name}_{timestamp}")
+        cmd = build_nmap_command(target, ports=args.ports, scan_type="", extra_args=extra_args_str, 
+                               output_basename=basename, xml=not args.no_xml)
+        q.put((cmd, target))
+
+        # Check if common web ports are open and chain Nikto scan
+        open_ports = [int(port) for port, service in initial_findings['open_ports']]  # Extract port numbers
+        if 80 in open_ports or 443 in open_ports:
+            port_to_scan = 80 if 80 in open_ports else 443
+            nikto_output = chain_nikto_scan(target, port_to_scan)
+            if nikto_output:
+                print(f"Nikto JSON output for {target} on port {port_to_scan}:\n{nikto_output}")
+
+    # wait for queue
+    try:
+        q.join()
+    except KeyboardInterrupt:
+        logger.warning("Interrupted. Shutting down workers...")
+
+    # stop workers
+    for _ in threads:
+        q.put(None)
+    for t in threads:
+        t.join(timeout=1)
+
+    logger.info("Scan iteration completed")
 
 if __name__ == '__main__':
     main()

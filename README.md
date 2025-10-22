@@ -99,6 +99,10 @@ Only scan hosts you own or have explicit permission to test. Unauthorized scanni
 
 ## 🔧 Extending this tool
 
+### 🕵️ Nikto Chaining
+- Automatically runs a Nikto scan on targets with common web ports (80/443) open.
+- Provides JSON output for integration with dashboards and further analysis.
+
 # 🌐 WebMap Integration
 
 This tool generates XML output by default for easy integration with WebMap. To use with WebMap:

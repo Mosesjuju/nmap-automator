@@ -1,0 +1,53 @@
+2025-10-21 21:43:52,709 - INFO - Starting scheduled scan iteration
+2025-10-21 21:43:52,718 - INFO - Queuing command for scanme.nmap.org: nmap -sV -sC -v -oN nmap_results/scanme.nmap.org_20251021_214352.txt -oX nmap_results/scanme.nmap.org_20251021_214352.xml scanme.nmap.org
+2025-10-21 21:43:52,721 - INFO - Running: nmap -sV -sC -v -oN nmap_results/scanme.nmap.org_20251021_214352.txt -oX nmap_results/scanme.nmap.org_20251021_214352.xml scanme.nmap.org
+2025-10-21 21:44:37,865 - INFO - Finished scan for scanme.nmap.org
+2025-10-21 21:44:37,870 - INFO - Scan iteration completed
+2025-10-22 07:22:15,707 - INFO - Starting scheduled scan iteration
+2025-10-22 07:22:15,719 - INFO - Queuing command for scanme.nmap.org: nmap -sV --script vuln -v -oN nmap_results/scanme.nmap.org_20251022_072215.txt -oX nmap_results/scanme.nmap.org_20251022_072215.xml scanme.nmap.org
+2025-10-22 07:22:15,727 - INFO - Running: nmap -sV --script vuln -v -oN nmap_results/scanme.nmap.org_20251022_072215.txt -oX nmap_results/scanme.nmap.org_20251022_072215.xml scanme.nmap.org
+2025-10-22 07:28:26,958 - INFO - Finished scan for scanme.nmap.org
+2025-10-22 07:28:26,971 - INFO - Found interesting results for scanme.nmap.org: 0 open ports, 2 potential vulnerabilities
+2025-10-22 07:28:26,972 - ERROR - Error during vulnerability analysis: 
+
+You tried to access openai.ChatCompletion, but this is no longer supported in openai>=1.0.0 - see the README at https://github.com/openai/openai-python for the API.
+
+You can run `openai migrate` to automatically upgrade your codebase to use the 1.0.0 interface. 
+
+Alternatively, you can pin your installation to the old version, e.g. `pip install openai==0.28`
+
+A detailed migration guide is available here: https://github.com/openai/openai-python/discussions/742
+
+2025-10-22 07:28:26,972 - INFO - AI Vulnerability Analysis Results:
+2025-10-22 07:28:26,972 - INFO - 
+Metasploit Module Suggestions:
+2025-10-22 07:28:26,973 - ERROR - Error during AI analysis: name 'json' is not defined
+2025-10-22 07:28:26,976 - INFO - Scan iteration completed
+2025-10-22 07:31:54,943 - INFO - Starting scheduled scan iteration
+2025-10-22 07:31:54,954 - INFO - Queuing command for scanme.nmap.org: nmap -sV --script vuln -v -oN nmap_results/scanme.nmap.org_20251022_073154.txt -oX nmap_results/scanme.nmap.org_20251022_073154.xml scanme.nmap.org
+2025-10-22 07:31:54,957 - INFO - Running: nmap -sV --script vuln -v -oN nmap_results/scanme.nmap.org_20251022_073154.txt -oX nmap_results/scanme.nmap.org_20251022_073154.xml scanme.nmap.org
+2025-10-22 07:38:40,293 - INFO - Finished scan for scanme.nmap.org
+2025-10-22 07:38:40,303 - INFO - Found interesting results for scanme.nmap.org: 0 open ports, 2 potential vulnerabilities
+2025-10-22 07:38:42,735 - INFO - error_code=model_not_found error_message='The model `gpt-4` does not exist or you do not have access to it.' error_param=None error_type=invalid_request_error message='OpenAI API error received' stream_error=False
+2025-10-22 07:38:42,735 - ERROR - Error during vulnerability analysis: The model `gpt-4` does not exist or you do not have access to it.
+2025-10-22 07:38:42,736 - INFO - AI Vulnerability Analysis Results:
+2025-10-22 07:38:42,736 - INFO - 
+Metasploit Module Suggestions:
+2025-10-22 07:38:42,737 - ERROR - Error during AI analysis: name 'json' is not defined
+2025-10-22 07:38:42,740 - INFO - Scan iteration completed
+2025-10-22 07:39:49,661 - INFO - Starting scheduled scan iteration
+2025-10-22 07:39:49,665 - INFO - Queuing command for scanme.nmap.org: nmap -sV --script vuln -v -oN nmap_results/scanme.nmap.org_20251022_073949.txt -oX nmap_results/scanme.nmap.org_20251022_073949.xml scanme.nmap.org
+2025-10-22 07:39:49,666 - INFO - Running: nmap -sV --script vuln -v -oN nmap_results/scanme.nmap.org_20251022_073949.txt -oX nmap_results/scanme.nmap.org_20251022_073949.xml scanme.nmap.org
+2025-10-22 07:46:53,494 - INFO - Finished scan for scanme.nmap.org
+2025-10-22 07:46:53,504 - INFO - Found interesting results for scanme.nmap.org: 0 open ports, 2 potential vulnerabilities
+2025-10-22 07:46:55,108 - INFO - error_code=insufficient_quota error_message='You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.' error_param=None error_type=insufficient_quota message='OpenAI API error received' stream_error=False
+2025-10-22 07:46:55,109 - ERROR - Error during vulnerability analysis: You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.
+2025-10-22 07:46:55,109 - INFO - AI Vulnerability Analysis Results:
+2025-10-22 07:46:55,109 - INFO - 
+Metasploit Module Suggestions:
+2025-10-22 07:46:55,110 - ERROR - Error during AI analysis: name 'json' is not defined
+2025-10-22 07:46:55,113 - INFO - Scan iteration completed
+2025-10-22 10:02:22,049 - INFO - Starting scheduled scan iteration
+2025-10-22 10:02:22,054 - INFO - Queuing command for localhost: nmap -p 80 -sS -oN nmap_results/localhost_20251022_100222.txt -oX nmap_results/localhost_20251022_100222.xml localhost
+2025-10-22 10:02:22,057 - INFO - Running: nmap -p 80 -sS -oN nmap_results/localhost_20251022_100222.txt -oX nmap_results/localhost_20251022_100222.xml localhost
+2025-10-22 10:02:22,063 - INFO - Scan iteration completed

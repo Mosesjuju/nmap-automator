@@ -32,7 +32,7 @@ class VulnerabilityAnalyzer:
             
             # Call GPT API
             response = openai.ChatCompletion.create(
-                model="gpt-4",  # You can change this to a different model if needed
+                model="gpt-3.5-turbo",  # Using GPT-3.5-turbo for wider availability
                 messages=[
                     {"role": "system", "content": "You are a cybersecurity expert analyzing vulnerability scan results. "
                      "Provide severity assessments and specific Metasploit module recommendations where applicable."},
