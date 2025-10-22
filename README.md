@@ -103,6 +103,22 @@ Only scan hosts you own or have explicit permission to test. Unauthorized scanni
 - Automatically runs a Nikto scan on targets with common web ports (80/443) open.
 - Provides JSON output for integration with dashboards and further analysis.
 
+Usage
+- Ensure Nikto is installed and available in your PATH.
+- Run your scan normally; when ports 80/443 are detected open, a Nikto scan is chained and its JSON is printed to stdout.
+
+```bash
+# Focus on common web ports and show only open results
+python3 nmap_automator_new.py scan.nmap.org -sV -p 80,443 --open
+
+# Optionally, redirect Nikto JSON output to a file for ingestion
+python3 nmap_automator_new.py scan.nmap.org -sV -p 80,443 --open > nikto_scan.json
+```
+
+Notes
+- At present, Nikto JSON is printed to the console; file-based JSON artifacts can be added on request.
+- Ideal for piping into dashboards or log processors.
+
 # 🌐 WebMap Integration
 
 This tool generates XML output by default for easy integration with WebMap. To use with WebMap:
@@ -171,6 +187,13 @@ Tips & troubleshooting
 - If `wkhtmltopdf` is missing, the workflow attempts to install it; you can also install Chromium in the workflow for more accurate rendering.
 - Generated PDFs are saved in your mounted `nmap_results/reports` directory (host path: `./nmap_results/reports`).
 - If PDFs aren't generated, check the workflow logs in GitHub Actions and ensure HTML reports exist under `nmap_results`.
+
+
+## 📘 Developer Guide
+
+See the Developer Guide for design notes, assumptions, and roadmap:
+
+- [DEVELOPER.md](./DEVELOPER.md)
 
 
 
