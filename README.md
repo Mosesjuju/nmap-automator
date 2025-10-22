@@ -136,35 +136,38 @@ python3 nmap_automator.py example.com -o /path/to/your/nmap_results
 
 # 📄 Exporting PDF reports from WebMap
 
-WebMap can generate PDF reports from your imported Nmap XML results. There are two common ways to export PDFs:
+WebMap can generate PDF reports from your imported Nmap XML results. You can export PDFs manually from the UI or automate conversion and artifact publishing using the included helper script and CI workflow.
 
-1) From the Web UI (recommended)
-  - Log in to the WebMap web UI at http://localhost:8000 using your token
-  - Open the host or report view you want to export
-  - Click the "Export" or "PDF" button on the report toolbar (location depends on WebMap version)
-  - The UI will generate and download a PDF of the current report
-
-2) From inside the container (headless / automated)
-  - WebMap stores generated HTML reports under `/opt/xml` (same path as mounted results). If you need to convert HTML to PDF yourself, use a headless browser or wkhtmltopdf.
-
-  Example: using Chromium headless (recommended for modern HTML/CSS support):
-
+Manual UI export
+1) Log in to http://localhost:8000 using the token from the container:
 ```bash
-# run inside the host (adjust paths as needed)
-docker exec -ti container_name bash -c "apt-get update && apt-get install -y chromium" \
-  && docker exec -ti container_name chromium --headless --disable-gpu --print-to-pdf=/opt/xml/reports/scan_report.pdf /opt/xml/reports/scan_report.html
+docker exec -ti container_name /root/token
 ```
+2) Open the host/report in the WebMap UI and use the Export/PDF button on the report toolbar (UI location varies by version).
 
-  Example: using wkhtmltopdf (if available):
+Automated export (recommended for pipelines)
 
+1) Helper script
+- `scripts/convert_reports.sh` — finds the most recent HTML report under `nmap_results` and converts it to PDF.
+- Usage (defaults to `./nmap_results` and writes PDFs to `./nmap_results/reports`):
 ```bash
-docker exec -ti container_name wkhtmltopdf /opt/xml/reports/scan_report.html /opt/xml/reports/scan_report.pdf
+./scripts/convert_reports.sh
+# or specify input/output directories:
+./scripts/convert_reports.sh /path/to/nmap_results /path/to/output_reports
 ```
+- Behavior:
+  - Prefers `wkhtmltopdf` if available on the host
+  - If not available, attempts a Dockerized Chromium conversion (no host install required)
+  - Prints the saved PDF path on success
 
-  Notes and tips:
-  - Generated PDFs will be saved under the mounted `nmap_results` directory on the host (e.g., `/home/kali/NMAP/nmap_results/reports`).
-  - If the container does not include `chromium` or `wkhtmltopdf`, you can install them inside the container or run the conversion on the host by copying the HTML files out of the container.
-  - For automation, add a small script that finds the latest report HTML and converts it to PDF.
+2) GitHub Actions workflow
+- A workflow `.github/workflows/generate-pdf.yml` will run on pushes touching `nmap_results/**` and on released publishes. It executes `scripts/convert_reports.sh` and uploads PDFs in `nmap_results/reports` as workflow artifacts.
+
+Tips & troubleshooting
+- If `wkhtmltopdf` is missing, the workflow attempts to install it; you can also install Chromium in the workflow for more accurate rendering.
+- Generated PDFs are saved in your mounted `nmap_results/reports` directory (host path: `./nmap_results/reports`).
+- If PDFs aren't generated, check the workflow logs in GitHub Actions and ensure HTML reports exist under `nmap_results`.
+
 
 
 # Extending
