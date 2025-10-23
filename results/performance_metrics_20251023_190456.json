@@ -1,0 +1,98 @@
+{
+  "exported_at": "2025-10-23T19:04:56.352262",
+  "summary": {
+    "dashboard_status": "Active",
+    "last_updated": "2025-10-23T19:04:56.352292",
+    "cache_performance": {
+      "hit_rate": 0,
+      "total_entries": 0,
+      "memory_usage": 0,
+      "performance_gain": "N/A"
+    },
+    "system_health": {
+      "cpu_usage": 82.6,
+      "memory_usage": 65.6,
+      "disk_usage": 71.0,
+      "status": "Warning"
+    },
+    "scan_metrics": {
+      "total_scans": 5,
+      "average_duration": 12.5,
+      "success_rate": 100.0
+    }
+  },
+  "detailed_metrics": {
+    "scan_performance": [
+      {
+        "timestamp": "2025-10-23T19:04:51.345133",
+        "target": "target1.com",
+        "scan_type": "comprehensive",
+        "duration": 10.5,
+        "status": "success",
+        "cache_hit": true,
+        "vulnerabilities_found": 0,
+        "risk_score": 30
+      },
+      {
+        "timestamp": "2025-10-23T19:04:52.349356",
+        "target": "target2.com",
+        "scan_type": "comprehensive",
+        "duration": 11.5,
+        "status": "success",
+        "cache_hit": false,
+        "vulnerabilities_found": 1,
+        "risk_score": 40
+      },
+      {
+        "timestamp": "2025-10-23T19:04:53.349658",
+        "target": "target3.com",
+        "scan_type": "comprehensive",
+        "duration": 12.5,
+        "status": "success",
+        "cache_hit": true,
+        "vulnerabilities_found": 2,
+        "risk_score": 50
+      },
+      {
+        "timestamp": "2025-10-23T19:04:54.350119",
+        "target": "target4.com",
+        "scan_type": "comprehensive",
+        "duration": 13.5,
+        "status": "success",
+        "cache_hit": false,
+        "vulnerabilities_found": 2,
+        "risk_score": 60
+      },
+      {
+        "timestamp": "2025-10-23T19:04:55.350654",
+        "target": "target5.com",
+        "scan_type": "comprehensive",
+        "duration": 14.5,
+        "status": "success",
+        "cache_hit": true,
+        "vulnerabilities_found": 2,
+        "risk_score": 70
+      }
+    ],
+    "cache_analytics": {},
+    "system_metrics": {
+      "timestamp": "2025-10-23T19:04:51.331405",
+      "cpu_percent": 82.6,
+      "memory_percent": 65.6,
+      "memory_available": 1.9409141540527344,
+      "disk_usage": 71.0,
+      "network_io": {
+        "bytes_sent": 38078110,
+        "bytes_recv": 48884994,
+        "packets_sent": 79266,
+        "packets_recv": 72012,
+        "errin": 0,
+        "errout": 4,
+        "dropin": 0,
+        "dropout": 12
+      },
+      "process_count": 282
+    },
+    "security_trends": []
+  }
+}
