@@ -1,0 +1,158 @@
+{
+  "tool_chaining": {
+    "enabled": true,
+    "parallel_execution": false,
+    "max_concurrent_tools": 3,
+    "result_aggregation": true
+  },
+  "web_scanners": {
+    "nikto": {
+      "enabled": true,
+      "path": "nikto",
+      "description": "Web server vulnerability scanner",
+      "triggers": ["port:80", "port:443", "service:http", "service:https"],
+      "args": "-host {target} --ssl --Tuning x6",
+      "timeout": 600,
+      "output_format": "json",
+      "priority": 1
+    },
+    "gobuster": {
+      "enabled": true,  
+      "path": "gobuster",
+      "description": "Directory/file brute-forcer",
+      "triggers": ["port:80", "port:443", "service:http"],
+      "args": "dir -u http://{target} -w /usr/share/wordlists/dirb/common.txt -x php,html,txt",
+      "timeout": 300,
+      "priority": 2
+    },
+    "dirb": {
+      "enabled": false,
+      "path": "dirb", 
+      "description": "Web content scanner",
+      "triggers": ["port:80", "port:443", "service:http"],
+      "args": "/usr/share/wordlists/dirb/common.txt",
+      "timeout": 300,
+      "priority": 3
+    },
+    "wpscan": {
+      "enabled": false,
+      "path": "wpscan",
+      "description": "WordPress vulnerability scanner", 
+      "triggers": ["service:wordpress", "cms:wordpress"],
+      "args": "--enumerate u,p,t --api-token YOUR_API_TOKEN",
+      "timeout": 600,
+      "priority": 4
+    }
+  },
+  "database_scanners": {
+    "sqlmap": {
+      "enabled": false,
+      "path": "sqlmap",
+      "description": "SQL injection testing tool",
+      "triggers": ["service:mysql", "service:mssql", "service:postgresql", "param:sql"],
+      "args": "--batch --level=2 --risk=1",
+      "timeout": 1800,
+      "priority": 1
+    }
+  },
+  "network_scanners": {
+    "masscan": {
+      "enabled": false,
+      "path": "masscan", 
+      "description": "Fast port scanner",
+      "triggers": ["network_range"],
+      "args": "-p1-65535 --rate=1000",
+      "timeout": 300,
+      "priority": 1
+    },
+    "zmap": {
+      "enabled": false,
+      "path": "zmap",
+      "description": "Internet-wide network scanner",
+      "triggers": ["large_network"],
+      "args": "-p 80,443",
+      "timeout": 600, 
+      "priority": 2
+    }
+  },
+  "ssl_scanners": {
+    "sslscan": {
+      "enabled": true,
+      "path": "sslscan",
+      "description": "SSL/TLS configuration scanner",
+      "triggers": ["port:443", "service:https", "service:ssl"],
+      "args": "--xml {target}:443",
+      "timeout": 120,
+      "priority": 1
+    },
+    "testssl": {
+      "enabled": false,
+      "path": "testssl.sh",
+      "description": "SSL/TLS tester",
+      "triggers": ["port:443", "service:https"],
+      "args": "--jsonfile",
+      "timeout": 300,
+      "priority": 2
+    }
+  },
+  "brute_force": {
+    "hydra": {
+      "enabled": false,
+      "path": "hydra",
+      "description": "Network logon cracker", 
+      "triggers": ["service:ssh", "service:ftp", "service:telnet", "service:http-get", "service:rdp"],
+      "args": "-l admin -P /usr/share/wordlists/rockyou.txt",
+      "timeout": 600,
+      "priority": 1
+    },
+    "medusa": {
+      "enabled": false,
+      "path": "medusa",
+      "description": "Parallel brute force tool",
+      "triggers": ["service:ssh", "service:ftp", "service:telnet"],
+      "args": "-u admin -P /usr/share/wordlists/rockyou.txt",
+      "timeout": 600, 
+      "priority": 2
+    }
+  },
+  "smb_scanners": {
+    "enum4linux": {
+      "enabled": true,
+      "path": "enum4linux",
+      "description": "SMB enumeration tool",
+      "triggers": ["port:139", "port:445", "service:smb", "service:netbios"],
+      "args": "-a {target}",
+      "timeout": 300,
+      "priority": 1
+    },
+    "smbclient": {
+      "enabled": true,
+      "path": "smbclient", 
+      "description": "SMB client for share enumeration",
+      "triggers": ["port:445", "service:smb"],
+      "args": "-L {target} -N",
+      "timeout": 60,
+      "priority": 2
+    }
+  },
+  "dns_scanners": {
+    "dnsrecon": {
+      "enabled": false,
+      "path": "dnsrecon",
+      "description": "DNS enumeration tool",
+      "triggers": ["port:53", "service:dns"],
+      "args": "-a -d",
+      "timeout": 120,
+      "priority": 1
+    },
+    "fierce": {
+      "enabled": false,
+      "path": "fierce",
+      "description": "DNS reconnaissance tool", 
+      "triggers": ["domain"],
+      "args": "--domain",
+      "timeout": 180,
+      "priority": 2
+    }
+  }
+}

@@ -1,0 +1,87 @@
+# SecureScout .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/*.log
+
+# Cache and temporary files
+cache/cache_persistence.json
+temp/
+*.tmp
+*.temp
+
+# Scan results (too many to track individually)
+results/nmap_results/*.txt
+results/nmap_results/*.xml
+results/nmap_results/*.gnmap
+results/nmap_results/*.masscan
+results/tool_results/
+results/test_results/
+results/webmap_results/
+nmap_results/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Security sensitive files
+*.key
+*.pem
+api_keys.txt
+credentials.*
+
+# Large binary files
+*.pcap
+*.cap
+*.dmp
+
+# Backup files
+*~
+*.bak
+*_old.*
+*_backup.*
+README_v2.md
+README_old.md
+
+# Test coverage
+.coverage
+htmlcov/
+
+# Temporary git files
+*.orig
+*.rej

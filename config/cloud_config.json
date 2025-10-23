@@ -1,0 +1,66 @@
+{
+  "cloud_providers": {
+    "aws": {
+      "enabled": true,
+      "profile": "default",
+      "regions": [
+        "us-east-1",
+        "us-west-2",
+        "eu-west-1"
+      ],
+      "services": [
+        "ec2",
+        "rds",
+        "elb",
+        "s3"
+      ]
+    },
+    "azure": {
+      "enabled": false,
+      "subscription_id": "your-subscription-id",
+      "regions": [
+        "eastus",
+        "westus2",
+        "westeurope"
+      ],
+      "services": [
+        "virtualmachines",
+        "databases",
+        "loadbalancers"
+      ]
+    },
+    "gcp": {
+      "enabled": false,
+      "project_id": "your-project-id",
+      "zones": [
+        "us-central1-a",
+        "us-east1-b",
+        "europe-west1-c"
+      ],
+      "services": [
+        "compute",
+        "sql",
+        "storage"
+      ]
+    }
+  },
+  "scanning": {
+    "parallel_scans": 10,
+    "default_evasion_profile": "stealth",
+    "enable_risk_analysis": true,
+    "compliance_frameworks": [
+      "pci-dss",
+      "sox"
+    ]
+  },
+  "output": {
+    "cloud_results_dir": "cloud_scan_results",
+    "executive_reports": true,
+    "detailed_reports": true,
+    "export_formats": [
+      "json",
+      "xml",
+      "csv"
+    ]
+  }
+}

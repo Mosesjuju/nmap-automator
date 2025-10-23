@@ -1,0 +1,62 @@
+{
+  "scan_start": 1761233834.9227078,
+  "targets_input": [
+    "scanme.nmap.org",
+    "testphp.vulnweb.com"
+  ],
+  "targets_resolved": {},
+  "port_discovery": {},
+  "nmap_results": [],
+  "tool_results": [],
+  "web_results": [],
+  "performance_metrics": {
+    "total_operations": 2,
+    "total_duration_seconds": 0.0018780231475830078,
+    "average_memory_usage_mb": 41.34375,
+    "peak_memory_usage_mb": 41.34375,
+    "cache_statistics": {
+      "hits": 0,
+      "misses": 0,
+      "hit_rate": "0.00%",
+      "size": 0,
+      "max_size": 1000
+    },
+    "memory_statistics": {
+      "system_total_gb": 5.645263671875,
+      "system_available_gb": 1.6020011901855469,
+      "system_usage_percent": 71.6,
+      "process_usage_mb": 41.34375,
+      "tracked_objects": 0
+    },
+    "optimization_suggestions": [
+      "High CPU usage - consider reducing thread count"
+    ],
+    "last_10_operations": [
+      {
+        "start_time": 1761233834.9232016,
+        "end_time": 1761233834.9235997,
+        "memory_usage_mb": 41.34375,
+        "cpu_usage_percent": 0.0,
+        "network_io_bytes": 32768,
+        "disk_io_bytes": 0,
+        "cache_hits": 0,
+        "cache_misses": 0
+      },
+      {
+        "start_time": 1761233834.9227293,
+        "end_time": 1761233834.924209,
+        "memory_usage_mb": 41.34375,
+        "cpu_usage_percent": 0.0,
+        "network_io_bytes": 32768,
+        "disk_io_bytes": 0,
+        "cache_hits": 0,
+        "cache_misses": 0
+      }
+    ]
+  },
+  "errors": [
+    "Object of type AsyncDNSResolver is not JSON serializable"
+  ],
+  "scan_end": 1761233834.9262435,
+  "scan_duration": 0.003535747528076172
+}

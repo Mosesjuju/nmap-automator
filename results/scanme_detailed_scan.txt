@@ -1,0 +1,51 @@
+# Nmap 7.95 scan initiated Thu Oct 23 11:50:54 2025 as: /usr/lib/nmap/nmap --privileged -p 22,80,443,9929 -sV -sC -A -oN results/scanme_detailed_scan.txt scanme.nmap.org
+Nmap scan report for scanme.nmap.org (45.33.32.156)
+Host is up (0.36s latency).
+Other addresses for scanme.nmap.org (not scanned): 2600:3c01::f03c:91ff:fe18:bb2f
+
+PORT     STATE  SERVICE    VERSION
+22/tcp   open   ssh        OpenSSH 6.6.1p1 Ubuntu 2ubuntu2.13 (Ubuntu Linux; protocol 2.0)
+| ssh-hostkey: 
+|   256 96:02:bb:5e:57:54:1c:4e:45:2f:56:4c:4a:24:b2:57 (ECDSA)
+|_  256 33:fa:91:0f:e0:e1:7b:1f:6d:05:a2:b0:f1:54:41:56 (ED25519)
+80/tcp   open   http       Apache httpd 2.4.7 ((Ubuntu))
+|_http-title: Go ahead and ScanMe!
+|_http-server-header: Apache/2.4.7 (Ubuntu)
+|_http-favicon: Nmap Project
+443/tcp  closed https
+9929/tcp open   nping-echo Nping echo
+Aggressive OS guesses: Linux 5.0 - 5.14 (98%), MikroTik RouterOS 7.2 - 7.5 (Linux 5.6.3) (98%), Linux 4.15 - 5.19 (97%), OpenWrt 21.02 (Linux 5.4) (95%), Linux 2.6.32 - 3.13 (95%), Linux 5.1 - 5.15 (95%), Linux 6.0 (95%), OpenWrt 22.03 (Linux 5.10) (94%), Linux 4.19 (94%), Linux 5.0 (94%)
+No exact OS matches for host (test conditions non-ideal).
+Network Distance: 26 hops
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+TRACEROUTE (using port 443/tcp)
+HOP RTT       ADDRESS
+1   0.95 ms   ERroR404.mshome.net (172.19.112.1)
+2   11.47 ms  10.1.0.1
+3   10.44 ms  217.199.148.225
+4   10.73 ms  217.199.151.49
+5   11.53 ms  105.177.9.13
+6   17.29 ms  41.181.105.142
+7   19.78 ms  41.181.105.41
+8   14.48 ms  41.181.105.123
+9   227.90 ms 41.181.190.128
+10  228.84 ms 41.181.244.118
+11  82.88 ms  41.181.105.167
+12  80.42 ms  41.181.189.166
+13  135.30 ms 41.181.245.181
+14  232.51 ms 41.181.244.161
+15  233.21 ms 41.181.244.171
+16  238.02 ms e0-23.core1.lon3.he.net (184.104.205.252)
+17  238.28 ms 100ge0-59.core2.lon5.he.net (184.104.198.246)
+18  376.70 ms port-channel22.core3.nyc4.he.net (184.104.188.100)
+19  ... 20
+21  377.39 ms port-channel9.core3.sjc2.he.net (184.104.199.21)
+22  357.81 ms 10.203.32.4
+23  358.03 ms 10.203.35.72
+24  358.42 ms 10.203.32.4
+25  357.37 ms 10.203.35.71
+26  361.07 ms scanme.nmap.org (45.33.32.156)
+
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+# Nmap done at Thu Oct 23 11:51:37 2025 -- 1 IP address (1 host up) scanned in 43.38 seconds

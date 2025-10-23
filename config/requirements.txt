@@ -1,0 +1,13 @@
+# Runtime dependencies (Debian/Ubuntu package names)
+python3-nmap
+python3-schedule
+python3-openai
+tqdm
+pytest
+
+# If using pip instead, the equivalents are:
+# python-nmap
+# schedule
+# openai
+
+openai==0.28.0
