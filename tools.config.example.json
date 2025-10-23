@@ -1,0 +1,7 @@
+{
+  "nikto": {
+    "path": "nikto",
+    "args": "--ssl",
+    "timeout": 600
+  }
+}

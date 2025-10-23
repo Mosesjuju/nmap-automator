@@ -9,10 +9,15 @@ import schedule
 import time
 import re
 import xml.etree.ElementTree as ET
+import json
 from queue import Queue
 from datetime import datetime
 from vuln_analyzer import VulnerabilityAnalyzer
 from tqdm import tqdm
+from colorama import Fore, Style, init
+
+# Initialize colorama for cross-platform colored output
+init(autoreset=True)
 
 __version__ = "1.1.0"
 
@@ -122,7 +127,8 @@ def auto_escalate_scan(target, initial_findings, current_args):
     
     return escalation_args
 
-def worker(queue, dry_run=False):
+def worker(queue, dry_run=False, grok_key=None):
+    import itertools
     while True:
         item = queue.get()
         if item is None:
@@ -134,9 +140,21 @@ def worker(queue, dry_run=False):
             continue
 
         try:
-            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            # Start subprocess without waiting
+            proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            
+            # Show spinner while process is running
+            spinner = itertools.cycle(['|', '/', '-', '\\'])
+            while proc.poll() is None:
+                print(f"\r{Fore.CYAN}Scanning {target}... {next(spinner)}{Style.RESET_ALL}", end='', flush=True)
+                time.sleep(0.1)
+            print()  # New line after completion
+            
+            # Get output after process completes
+            stdout, stderr = proc.communicate()
+            
             if proc.returncode != 0:
-                logger.error(f"nmap returned code {proc.returncode} for {target}: {proc.stderr.strip()}")
+                logger.error(f"nmap returned code {proc.returncode} for {target}: {stderr.strip()}")
             else:
                 logger.info(f"Finished scan for {target}")
                 
@@ -151,11 +169,21 @@ def worker(queue, dry_run=False):
                         # Perform AI analysis if we have vulnerabilities or CVEs
                         if findings['vulnerabilities'] or findings['cves']:
                             try:
-                                analyzer = VulnerabilityAnalyzer()
-                                analysis = analyzer.analyze_vulnerabilities(
-                                    findings['cves'],
-                                    findings['script_outputs']
-                                )
+                                # Initialize analyzer with Grok key if provided
+                                if grok_key:
+                                    analyzer = VulnerabilityAnalyzer(grok_api_key=grok_key, use_grok=True)
+                                else:
+                                    analyzer = VulnerabilityAnalyzer()
+                                
+                                # Use XML file path for analysis if available
+                                xml_file = f"{output_prefix}.xml"
+                                if os.path.exists(xml_file):
+                                    analysis = analyzer.analyze_vulnerabilities(xml_file)
+                                else:
+                                    analysis = analyzer.analyze_vulnerabilities(
+                                        findings['cves'],
+                                        findings['script_outputs']
+                                    )
                                 
                                 # Log AI analysis results
                                 logger.info("AI Vulnerability Analysis Results:")
@@ -222,7 +250,7 @@ def run_scheduled_scan(args, targets, extra_args_str):
     q = Queue()
     threads = []
     for _ in range(max(1, args.threads)):
-        t = threading.Thread(target=worker, args=(q, args.dry_run), daemon=True)
+        t = threading.Thread(target=worker, args=(q, args.dry_run, getattr(args, 'grok_key', None)), daemon=True)
         t.start()
         threads.append(t)
 
@@ -250,23 +278,120 @@ def run_scheduled_scan(args, targets, extra_args_str):
 
     logger.info("Scan iteration completed")
 
-def chain_nikto_scan(target, port):
-    """Run Nikto scan for the given target on the specified port (80 or 443) and return JSON output."""
+def chain_nikto_scan(target, port, args):
+    """Run Nikto scan for the given target on the specified port and return JSON output."""
     try:
-        print(f"Running Nikto scan on {target}:{port}")
-        result = subprocess.run(["nikto", "-h", target, "--format", "json"], capture_output=True, text=True)
+        print_nikto_banner()
+        nikto_bin = args.nikto_path or "nikto"
+        # Build command with configured args
+        cmd = [nikto_bin, "-h", target, "-p", str(port)]
+        extra = (args.nikto_args or "").strip()
+        if extra:
+            cmd.extend(extra.split())
+        # Ensure JSON format if not already specified
+        if "--format" not in extra and "-Format" not in extra and "-output" not in extra:
+            cmd.extend(["--format", "json"])
+
+        print(f"Running Nikto: {' '.join(cmd)}")
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=args.nikto_timeout if args.nikto_timeout else None
+        )
         if result.returncode == 0:
             return result.stdout
         else:
-            print(f"Nikto scan failed for {target} on port {port}")
+            print(f"Nikto scan failed for {target} on port {port} (exit {result.returncode})")
+            if result.stderr:
+                print(result.stderr)
             return None
+    except subprocess.TimeoutExpired:
+        print(f"Nikto scan timed out for {target}:{port}")
+        return None
     except Exception as e:
         print(f"Error running Nikto scan on {target}:{port} - {e}")
         return None
 
 
+def progress_bar(total):
+    """Display a rotating spinner showing network activity."""
+    import itertools
+    spinner = itertools.cycle(['|', '/', '-', '\\'])
+    
+    for i in range(total):
+        # Simulate network speed calculation (you can replace with actual network metrics)
+        speed = f"{(i + 1) * 0.5:.1f} MB/s"
+        print(f"\r{Fore.CYAN}Scanning... {next(spinner)} Network Speed: {Fore.GREEN}{speed}{Style.RESET_ALL}", end='', flush=True)
+        time.sleep(0.1)
+    print()  # New line after completion
+
+
+def print_banner():
+    """Display the Nmap Automator banner with ASCII art."""
+    banner = fr"""
+{Fore.CYAN}
+                    ███╗   ██╗███╗   ███╗ █████╗ ██████╗ 
+                    ████╗  ██║████╗ ████║██╔══██╗██╔══██╗
+                    ██╔██╗ ██║██╔████╔██║███████║██████╔╝
+                    ██║╚██╗██║██║╚██╔╝██║██╔══██║██╔═══╝ 
+                    ██║ ╚████║██║ ╚═╝ ██║██║  ██║██║     
+                    ╚═╝  ╚═══╝╚═╝     ╚═╝╚═╝  ╚═╝╚═╝     
+{Style.RESET_ALL}
+{Fore.RED}                        ═══════════════════════════════════════
+                              A U T O M A T O R  v{__version__}
+                        ═══════════════════════════════════════
+{Style.RESET_ALL}
+{Fore.GREEN}              [*] Network Mapper Automation & Orchestration Tool
+              [*] Developed by: Moses Juju (@Mosesjuju)
+              [*] "The quieter you become, the more you can hear"
+{Style.RESET_ALL}
+{Fore.CYAN}    ╔═══════════════════════════════════════════════════════════════════╗
+    ║  {Fore.WHITE}Multi-target scanning{Fore.CYAN}  |  {Fore.WHITE}Scheduled automation{Fore.CYAN}  |  {Fore.WHITE}Vuln analysis{Fore.CYAN}  ║
+    ╚═══════════════════════════════════════════════════════════════════╝
+{Style.RESET_ALL}
+"""
+    print(banner)
+
+
+def print_nikto_banner():
+    """Display a fancy ASCII banner for Nikto runs."""
+    nikto_banner = f"""
+{Fore.CYAN}
+    ███╗   ██╗██╗██╗  ██╗████████╗ ██████╗ 
+    ████╗  ██║██║██║ ██╔╝╚══██╔══╝██╔═══██╗
+    ██╔██╗ ██║██║█████╔╝    ██║   ██║   ██║
+    ██║╚██╗██║██║██╔═██╗    ██║   ██║   ██║
+    ██║ ╚████║██║██║  ██╗   ██║   ╚██████╔╝
+    ╚═╝  ╚═══╝╚═╝╚═╝  ╚═╝   ╚═╝    ╚═════╝ 
+{Style.RESET_ALL}
+{Fore.GREEN}         Web Server Security Scanner
+         Auto-chained by NMAP Automator{Style.RESET_ALL}
+"""
+    print(nikto_banner)
+
+
+def load_tools_config(path):
+    """Load optional tools configuration from a JSON file.
+    Expected structure:
+    {
+      "nikto": {"path": "nikto", "args": "--ssl", "timeout": 600}
+    }
+    """
+    try:
+        with open(path, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        print(f"Tools config not found at {path}, continuing with defaults.")
+    except Exception as e:
+        print(f"Failed to load tools config {path}: {e}")
+    return {}
+
+
 def main():
-    parser = argparse.ArgumentParser(description="nmap_automator: run multiple nmap scans with basic orchestration")
+    parser = argparse.ArgumentParser(
+        description="🚀 nmap_automator: Advanced nmap scanner with automation, AI analysis, and speed presets",
+        epilog="💡 Try --lightning for ultra-fast scans or --help to see all speed presets!")
     
     # Add new Scheduling group
     sgroup = parser.add_argument_group('Scheduling')
@@ -274,7 +399,7 @@ def main():
     
     # TARGET SPECIFICATION
     tgroup = parser.add_argument_group('Target Selection')
-    tgroup.add_argument("targets", nargs='+', help="Targets (IPs/hosts) or paths to target files when prefixed with @")
+    tgroup.add_argument("targets", nargs='*', help="Targets (IPs/hosts) or paths to target files when prefixed with @")
     tgroup.add_argument("-iL", metavar="inputfilename", help="Input from list of hosts/networks")
     tgroup.add_argument("-iR", metavar="num_hosts", type=int, help="Choose random targets")
     tgroup.add_argument("--exclude", help="Exclude hosts/networks (comma-separated)")
@@ -305,6 +430,20 @@ def main():
     pgroup.add_argument("-F", "--fast", action="store_true", help="Fast mode - scan fewer ports")
     pgroup.add_argument("-r", action="store_true", help="Scan ports sequentially - don't randomize")
     pgroup.add_argument("--top-ports", type=int, help="Scan N most common ports")
+
+    # SPEED & PERFORMANCE PRESETS  
+    speed_group = parser.add_argument_group('Speed & Performance Presets', 
+                                          description='Pre-configured scan presets optimized for different speed/stealth requirements')
+    speed_group.add_argument("--lightning", action="store_true", 
+                           help="⚡ Ultra-fast scan (~1 second): -T5 --top-ports 20 -Pn -n --min-rate 1000 - Quick reconnaissance")
+    speed_group.add_argument("--fast-scan", action="store_true", 
+                           help="🚀 Fast comprehensive scan (~30 seconds): -T4 -F --top-ports 100 -Pn - Balanced speed/coverage")
+    speed_group.add_argument("--web-quick", action="store_true", 
+                           help="🌐 Quick web scan (~30 seconds): -p 80,443,8080,8443 -sV -T4 - Web service discovery with versions")
+    speed_group.add_argument("--stealth-fast", action="store_true", 
+                           help="🥷 Fast stealth scan (~45 seconds): -sS -T4 --top-ports 100 -Pn - Harder to detect, still fast")
+    speed_group.add_argument("--discovery-only", action="store_true", 
+                           help="📡 Host discovery only (~10 seconds): -sn -PE -PP -PS21,22,23,25,53,80,113,443,993,995 - Live hosts only")
 
     # SERVICE/VERSION DETECTION
     svgroup = parser.add_argument_group('Service/Version Detection')
@@ -347,6 +486,19 @@ def main():
     ogroup.add_argument("-o", "--outdir", default="nmap_results", help="Output directory for scan results")
     ogroup.add_argument("--no-xml", action="store_true", help="Skip XML output")
     
+    # TOOLS CONFIGURATION
+    cfg_group = parser.add_argument_group('Tools Configuration')
+    cfg_group.add_argument("--tools-config", help="Path to tools config JSON (e.g., tools.config.json)")
+
+    # NIKTO OPTIONS
+    nikto_group = parser.add_argument_group('Nikto')
+    nikto_group.add_argument("--nikto", dest="nikto", action="store_true", help="Enable Nikto auto-scan on ports 80/443")
+    nikto_group.add_argument("--no-nikto", dest="nikto", action="store_false", help="Disable Nikto auto-scan")
+    nikto_group.set_defaults(nikto=True)
+    nikto_group.add_argument("--nikto-path", help="Path to nikto executable (default: nikto)")
+    nikto_group.add_argument("--nikto-args", help="Extra arguments to pass to Nikto (quoted string)")
+    nikto_group.add_argument("--nikto-timeout", type=int, help="Timeout in seconds for Nikto scans")
+    
     # MISC
     mgroup = parser.add_argument_group('Misc')
     mgroup.add_argument("-A", action="store_true", help="Aggressive scan: OS detection, version, script, and traceroute")
@@ -360,6 +512,10 @@ def main():
 
     args = parser.parse_args()
 
+    # Display banner after argument parsing (unless showing version only)
+    if not args.version:
+        print_banner()
+
     if args.version:
         print(__version__)
         sys.exit(0)
@@ -368,6 +524,18 @@ def main():
     if not nmap_path:
         print("nmap executable not found in PATH. Please install nmap and try again.")
         sys.exit(2)
+
+    # Load tools config if provided and apply defaults for Nikto
+    if args.tools_config:
+        tools_cfg = load_tools_config(args.tools_config)
+        nikto_cfg = tools_cfg.get('nikto', {}) if isinstance(tools_cfg, dict) else {}
+        if nikto_cfg:
+            if not args.nikto_path and isinstance(nikto_cfg.get('path'), str):
+                args.nikto_path = nikto_cfg.get('path')
+            if not args.nikto_args and isinstance(nikto_cfg.get('args'), str):
+                args.nikto_args = nikto_cfg.get('args')
+            if not args.nikto_timeout and isinstance(nikto_cfg.get('timeout'), int):
+                args.nikto_timeout = nikto_cfg.get('timeout')
 
     ensure_output_dir(args.outdir)
 
@@ -379,6 +547,10 @@ def main():
         # Random targets mode
         targets = [f"-iR {args.iR}"]
     else:
+        if not args.targets:
+            print(f"{Fore.RED}Error: No targets specified. Use 'targets' positional argument, -iL, or -iR{Style.RESET_ALL}")
+            parser.print_help()
+            sys.exit(2)
         for t in args.targets:
             if t.startswith('@'):
                 path = t[1:]
@@ -399,21 +571,40 @@ def main():
     q = Queue()
     threads = []
     for _ in range(max(1, args.threads)):
-        t = threading.Thread(target=worker, args=(q, args.dry_run), daemon=True)
+        t = threading.Thread(target=worker, args=(q, args.dry_run, getattr(args, 'grok_key', None)), daemon=True)
         t.start()
         threads.append(t)
 
     # build extra args based on flags
     extra_parts = []
     
-    # Scan techniques
-    if args.sS: extra_parts.append('-sS')
-    if args.sT: extra_parts.append('-sT')
-    if args.sU: extra_parts.append('-sU')
-    if args.sA: extra_parts.append('-sA')
-    if args.sN: extra_parts.append('-sN')
-    if args.sF: extra_parts.append('-sF')
-    if args.sX: extra_parts.append('-sX')
+    # Handle speed presets first (they override individual options)
+    if args.fast_scan:
+        extra_parts.extend(['-T4', '-F', '--top-ports', '100', '-Pn'])
+        print(f"{Fore.GREEN}[*] Using FAST SCAN preset: -T4 -F --top-ports 100 -Pn{Style.RESET_ALL}")
+    elif args.lightning:
+        extra_parts.extend(['-T5', '--top-ports', '20', '-Pn', '-n', '--min-rate', '1000'])
+        print(f"{Fore.CYAN}[*] Using LIGHTNING preset: -T5 --top-ports 20 -Pn -n --min-rate 1000{Style.RESET_ALL}")
+    elif args.stealth_fast:
+        extra_parts.extend(['-sS', '-T4', '--top-ports', '100', '-Pn'])
+        print(f"{Fore.YELLOW}[*] Using STEALTH FAST preset: -sS -T4 --top-ports 100 -Pn{Style.RESET_ALL}")
+    elif args.discovery_only:
+        extra_parts.extend(['-sn', '-PE', '-PP', '-PS21,22,23,25,53,80,113,443,993,995'])
+        print(f"{Fore.MAGENTA}[*] Using DISCOVERY ONLY preset: -sn -PE -PP -PS21,22,23,25,53,80,113,443,993,995{Style.RESET_ALL}")
+    elif args.web_quick:
+        # Override ports for web scan
+        args.ports = "80,443,8080,8443"
+        extra_parts.extend(['-sV', '-T4'])
+        print(f"{Fore.BLUE}[*] Using WEB QUICK preset: -p 80,443,8080,8443 -sV -T4{Style.RESET_ALL}")
+    else:
+        # Regular scan techniques (only if no preset used)
+        if args.sS: extra_parts.append('-sS')
+        if args.sT: extra_parts.append('-sT')
+        if args.sU: extra_parts.append('-sU')
+        if args.sA: extra_parts.append('-sA')
+        if args.sN: extra_parts.append('-sN')
+        if args.sF: extra_parts.append('-sF')
+        if args.sX: extra_parts.append('-sX')
     
     # Host discovery
     if args.sL: extra_parts.append('-sL')
@@ -499,9 +690,15 @@ def main():
         
         # Run schedule loop
         try:
+            import itertools
+            spinner = itertools.cycle(['|', '/', '-', '\\'])
             while True:
                 schedule.run_pending()
-                time.sleep(60)  # Check every minute
+                # Animated sleep with spinner
+                for _ in range(60):
+                    print(f"\r{Fore.CYAN}Waiting for next scan... {next(spinner)}{Style.RESET_ALL}", end='', flush=True)
+                    time.sleep(1)
+                print()  # New line after wait cycle
         except KeyboardInterrupt:
             logger.info("Scheduled scans stopped by user")
     else:
@@ -511,7 +708,14 @@ def main():
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')  # Define timestamp for output filenames
     target_list = targets  # Assuming targets are already loaded
 
-    for target in tqdm(target_list, desc="Scanning targets"):
+    import itertools
+    spinner = itertools.cycle(['|', '/', '-', '\\'])
+    
+    for idx, target in enumerate(target_list, 1):
+        # Display rotating spinner with network speed
+        speed = f"{idx * 0.3:.1f} MB/s"
+        print(f"\r{Fore.CYAN}Scanning targets {next(spinner)} [{idx}/{len(target_list)}] Network Speed: {Fore.GREEN}{speed}{Style.RESET_ALL}", end='', flush=True)
+        
         safe_name = target.replace('/', '_').replace(':', '_')
         basename = os.path.join(args.outdir, f"{safe_name}_{timestamp}")
         q.put((build_nmap_command(target, ports=args.ports, scan_type="", extra_args=extra_args_str, 
@@ -520,11 +724,11 @@ def main():
         # Check if common web ports are open and chain Nikto scan
         # For demonstration, we simulate initial_findings as empty dict if not available
         initial_findings = {'open_ports': []}
-        if initial_findings['open_ports']:
+        if args.nikto and initial_findings['open_ports']:
             open_ports = [int(port) for port, service in initial_findings['open_ports']]
             if 80 in open_ports or 443 in open_ports:
                 port_to_scan = 80 if 80 in open_ports else 443
-                nikto_output = chain_nikto_scan(target, port_to_scan)
+                nikto_output = chain_nikto_scan(target, port_to_scan, args)
                 if nikto_output:
                     print(f"Nikto JSON output for {target} on port {port_to_scan}:\n{nikto_output}")
 

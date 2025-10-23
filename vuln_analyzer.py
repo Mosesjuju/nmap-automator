@@ -3,70 +3,161 @@ import openai
 import os
 import json
 import logging
+import xml.etree.ElementTree as ET
 from typing import List, Dict, Any
 
 logger = logging.getLogger(__name__)
 
 class VulnerabilityAnalyzer:
-    def __init__(self, api_key: str = None):
-        """Initialize the vulnerability analyzer with OpenAI API key."""
-        self.api_key = api_key or os.getenv('OPENAI_API_KEY')
-        if not self.api_key:
-            raise ValueError("OpenAI API key must be provided either directly or via OPENAI_API_KEY environment variable")
-        openai.api_key = self.api_key
+    def __init__(self, api_key: str = None, grok_api_key: str = None, use_grok: bool = False):
+        """Initialize the vulnerability analyzer with API key."""
+        self.use_grok = use_grok or grok_api_key is not None
+        
+        if self.use_grok:
+            self.api_key = grok_api_key or os.getenv('GROK_API_KEY')
+            if not self.api_key:
+                raise ValueError("Grok API key must be provided either directly or via GROK_API_KEY environment variable")
+            # Configure for Grok (xAI)
+            openai.api_key = self.api_key
+            openai.api_base = "https://api.x.ai/v1"
+        else:
+            self.api_key = api_key or os.getenv('OPENAI_API_KEY')
+            if not self.api_key:
+                raise ValueError("OpenAI API key must be provided either directly or via OPENAI_API_KEY environment variable")
+            openai.api_key = self.api_key
 
-    def analyze_vulnerabilities(self, cves: List[str], script_outputs: Dict[str, str]) -> Dict[str, Any]:
+    def analyze_vulnerabilities(self, xml_file_or_cves, script_outputs: Dict[str, str] = None) -> Dict[str, Any]:
         """
-        Analyze CVEs and Nmap script outputs using GPT to assess severity and suggest Metasploit modules.
+        Analyze vulnerabilities from XML file or CVE list using AI to assess severity and suggest Metasploit modules.
         
         Args:
-            cves: List of CVE IDs found
-            script_outputs: Dict of script_id -> output for vulnerability-related NSE scripts
+            xml_file_or_cves: Either path to XML file or List of CVE IDs found
+            script_outputs: Dict of script_id -> output for vulnerability-related NSE scripts (optional)
         
         Returns:
             Dictionary containing analysis results including severity scores and Metasploit suggestions
         """
         try:
-            # Prepare the prompt for GPT
+            # Handle different input types
+            if isinstance(xml_file_or_cves, str) and xml_file_or_cves.endswith('.xml'):
+                # Parse XML file
+                cves, script_outputs = self._parse_xml_vulnerabilities(xml_file_or_cves)
+            else:
+                # Use provided CVE list
+                cves = xml_file_or_cves if isinstance(xml_file_or_cves, list) else [xml_file_or_cves]
+                script_outputs = script_outputs or {}
+            
+            if not cves and not script_outputs:
+                return {
+                    "message": "No vulnerabilities found in scan results",
+                    "vulnerabilities": [],
+                    "metasploit_suggestions": []
+                }
+            
+            # Prepare the prompt for AI
             prompt = self._build_analysis_prompt(cves, script_outputs)
             
-            # Call GPT API using ChatCompletion with new API
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are a cybersecurity expert analyzing vulnerability scan results. Provide severity assessments and specific Metasploit module recommendations where applicable."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.3,
-                max_tokens=256
-            )
+            # Use HTTP requests for Grok since OpenAI library has compatibility issues
+            if self.use_grok:
+                import requests
+                url = "https://api.x.ai/v1/chat/completions"
+                headers = {
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json"
+                }
+                data = {
+                    "model": "grok-3",
+                    "messages": [
+                        {"role": "system", "content": "You are a cybersecurity expert analyzing vulnerability scan results. Provide detailed severity assessments and specific Metasploit module recommendations where applicable. Format your response as JSON with 'vulnerabilities' and 'metasploit_suggestions' arrays."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "temperature": 0.3,
+                    "max_tokens": 1500
+                }
+                
+                response_obj = requests.post(url, headers=headers, json=data, timeout=30)
+                if response_obj.status_code != 200:
+                    raise Exception(f"Grok API error: {response_obj.text}")
+                
+                response = response_obj.json()
+                analysis_text = response['choices'][0]['message']['content']
+            else:
+                # Call OpenAI API
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "You are a cybersecurity expert analyzing vulnerability scan results. Provide detailed severity assessments and specific Metasploit module recommendations where applicable. Format your response as JSON with 'vulnerabilities' and 'metasploit_suggestions' arrays."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.3,
+                    max_tokens=1500
+                )
+                analysis_text = response.choices[0].message['content']
+
             
-            analysis_text = response.choices[0].message['content']
             # Parse and structure the response
-            analysis = self._parse_gpt_response(analysis_text)
+            analysis = self._parse_ai_response(analysis_text)
+            
+            # Save analysis to file if we have an XML file
+            if isinstance(xml_file_or_cves, str) and xml_file_or_cves.endswith('.xml'):
+                self._save_analysis_to_file(xml_file_or_cves, analysis)
+            
             return analysis
             
         except Exception as e:
             logger.error(f"Error during vulnerability analysis: {e}")
-            if 'no longer supported' in str(e):
-                return {
-                    "error": "Invalid OpenAI API interface, dummy response returned.",
-                    "vulnerabilities": [{
-                        "description": "Dummy vulnerability",
-                        "severity": "Medium",
-                        "exploitability": "Low"
-                    }],
-                    "metasploit_suggestions": [{
-                        "module": "dummy_module",
-                        "description": "Dummy module description",
-                        "usage_notes": "None"
-                    }]
-                }
             return {
                 "error": str(e),
                 "vulnerabilities": [],
                 "metasploit_suggestions": []
             }
+
+    def _parse_xml_vulnerabilities(self, xml_file: str) -> tuple:
+        """Parse vulnerabilities from Nmap XML output."""
+        cves = []
+        script_outputs = {}
+        
+        try:
+            tree = ET.parse(xml_file)
+            root = tree.getroot()
+            
+            # Find all CVEs and script outputs
+            for host in root.findall('.//host'):
+                for port in host.findall('.//port'):
+                    for script in port.findall('.//script'):
+                        script_id = script.get('id', '')
+                        script_output = script.get('output', '')
+                        
+                        # Store script output
+                        if script_output:
+                            script_outputs[script_id] = script_output
+                        
+                        # Look for CVEs in script output
+                        if 'CVE' in script_output:
+                            # Extract CVE IDs from script output
+                            import re
+                            cve_matches = re.findall(r'CVE-\d{4}-\d+', script_output)
+                            cves.extend(cve_matches)
+                        
+                        # Also check script tables for CVE elements
+                        for table in script.findall('.//table'):
+                            if 'CVE' in table.get('key', ''):
+                                cves.append(table.get('key'))
+        
+        except Exception as e:
+            logger.error(f"Error parsing XML file {xml_file}: {e}")
+        
+        return list(set(cves)), script_outputs
+
+    def _save_analysis_to_file(self, xml_file: str, analysis: Dict[str, Any]):
+        """Save analysis results to a file next to the XML file."""
+        try:
+            analysis_file = xml_file.replace('.xml', '_analysis.json')
+            with open(analysis_file, 'w') as f:
+                json.dump(analysis, f, indent=2)
+            logger.info(f"AI analysis saved to {analysis_file}")
+        except Exception as e:
+            logger.error(f"Error saving analysis to file: {e}")
 
     def _build_analysis_prompt(self, cves: List[str], script_outputs: Dict[str, str]) -> str:
         """Build a prompt for GPT analysis."""
@@ -89,21 +180,33 @@ class VulnerabilityAnalyzer:
         
         return "".join(prompt_parts)
 
-    def _parse_gpt_response(self, response: str) -> Dict[str, Any]:
-        """Parse and structure GPT's response into a usable format."""
+    def _parse_ai_response(self, response: str) -> Dict[str, Any]:
+        """Parse and structure AI response into a usable format."""
         try:
-            # Simple parsing assuming GPT provides somewhat structured output
-            sections = response.split('\n\n')
+            # Try to parse as JSON first
+            try:
+                json_response = json.loads(response)
+                if isinstance(json_response, dict):
+                    return json_response
+            except json.JSONDecodeError:
+                pass
             
+            # Fallback to text parsing
             vulnerabilities = []
             metasploit_suggestions = []
             
-            current_section = None
+            # Simple text parsing for structured responses
+            sections = response.split('\n\n')
+            
             for section in sections:
-                if 'Severity:' in section:
-                    vulnerabilities.append(self._parse_vulnerability_section(section))
-                elif 'Metasploit:' in section or 'Module:' in section:
-                    metasploit_suggestions.append(self._parse_metasploit_section(section))
+                if any(keyword in section.lower() for keyword in ['cve', 'vulnerability', 'severity']):
+                    vuln = self._parse_vulnerability_section(section)
+                    if vuln:
+                        vulnerabilities.append(vuln)
+                elif any(keyword in section.lower() for keyword in ['metasploit', 'module', 'exploit']):
+                    msf = self._parse_metasploit_section(section)
+                    if msf:
+                        metasploit_suggestions.append(msf)
             
             return {
                 "vulnerabilities": vulnerabilities,
@@ -112,7 +215,7 @@ class VulnerabilityAnalyzer:
             }
             
         except Exception as e:
-            logger.error(f"Error parsing GPT response: {e}")
+            logger.error(f"Error parsing AI response: {e}")
             return {
                 "error": f"Failed to parse analysis: {e}",
                 "raw_analysis": response

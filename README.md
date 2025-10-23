@@ -52,13 +52,73 @@ A feature-rich Python3 CLI wrapper for nmap that supports all major nmap functio
 - `--reason`: Port state reasons
 - `--open`: Show only open ports
 
-### 🤖 AI-Powered Analysis
-- OpenAI integration for vulnerability assessment
-- Automated CVE analysis and risk scoring
-- Intelligent escalation recommendations
-- `--openai-key`: Set OpenAI API key (or use OPENAI_API_KEY env var)
-- Smart detection of critical vulnerabilities
-- Metasploit integration suggestions
+### 🤖 AI-Powered Vulnerability Analysis
+- **OpenAI/Grok AI integration** for intelligent vulnerability assessment
+- Automated CVE severity scoring and risk analysis
+- **Metasploit module recommendations** with usage notes
+- Exploitability assessment for discovered vulnerabilities
+- Detailed JSON analysis reports saved alongside scan results
+- Support for both OpenAI GPT and Grok AI models
+
+#### How It Works
+1. Nmap scans target and detects vulnerabilities/CVEs
+2. AI analyzes findings and provides:
+   - **Severity ratings**: Critical/High/Medium/Low
+   - **Exploitability scores**: How easy to exploit
+   - **Specific Metasploit modules** to test the vulnerabilities
+   - **Remediation advice** and security recommendations
+3. Results saved to `*.xml.analysis.json` for review
+
+#### Configuration
+- `--openai-key`: Provide OpenAI API key (or set `OPENAI_API_KEY` env var)
+- `--test-ai`: Enable AI analysis testing mode
+- `--grok-key`: Provide Grok AI API key for analysis
+- `--tools-config`: Load tool configurations from JSON file
+
+#### Example Usage
+
+**With OpenAI:**
+```bash
+export OPENAI_API_KEY='sk-your-openai-key'
+python3 nmap_automator_new.py target.com -sV -sC --script vuln
+```
+
+**With Grok AI:**
+```bash
+python3 nmap_automator_new.py target.com -sV -sC --test-ai --grok-key xai-your-grok-key
+```
+
+**View AI Analysis Results:**
+```bash
+# AI analysis saved to:
+cat nmap_results/target.com_TIMESTAMP.xml.analysis.json
+```
+
+#### Sample AI Output
+```json
+{
+  "vulnerabilities": [
+    {
+      "description": "CVE-2021-XXXXX - Remote Code Execution in Apache",
+      "severity": "Critical",
+      "exploitability": "High"
+    }
+  ],
+  "metasploit_suggestions": [
+    {
+      "module": "exploit/multi/http/apache_mod_cgi_bash_env_exec",
+      "description": "Apache mod_cgi Bash Environment Variable Code Injection",
+      "usage_notes": "Set RHOST, RPORT, and TARGETURI. Run exploit."
+    }
+  ]
+}
+```
+
+#### Benefits
+- **Save time**: No manual CVE research required
+- **Expert insights**: AI provides penetration testing guidance
+- **Actionable results**: Get specific tools and modules to use
+- **Comprehensive reports**: JSON format for automation/pipelines
 
 ## 📚 Usage Examples
 
@@ -90,7 +150,17 @@ python3 nmap_automator.py example.com -sS -A -p- --script vuln --dry-run
 Vulnerability analysis with AI assistance:
 ```bash
 export OPENAI_API_KEY='your-api-key'
-python3 nmap_automator.py target.com -sV --script vuln -A --openai-key "$OPENAI_API_KEY"
+python3 nmap_automator_new.py target.com -sV --script vuln -A
+```
+
+Using Grok AI for vulnerability analysis:
+```bash
+python3 nmap_automator_new.py target.com -sV -sC --test-ai --grok-key xai-your-grok-key
+```
+
+Multi-target scan with Nikto chaining and custom config:
+```bash
+python3 nmap_automator_new.py @targets.txt -sV --nikto --tools-config tools.config.json
 ```
 
 ## ⚠️ Safety and legality
@@ -99,25 +169,65 @@ Only scan hosts you own or have explicit permission to test. Unauthorized scanni
 
 ## 🔧 Extending this tool
 
-### 🕵️ Nikto Chaining
-- Automatically runs a Nikto scan on targets with common web ports (80/443) open.
-- Provides JSON output for integration with dashboards and further analysis.
+### 🕵️ Nikto Integration & Tools Configuration
 
-Usage
-- Ensure Nikto is installed and available in your PATH.
-- Run your scan normally; when ports 80/443 are detected open, a Nikto scan is chained and its JSON is printed to stdout.
+#### Automatic Nikto Chaining
+- Automatically runs Nikto web server scanner on targets with ports 80/443 open
+- Provides JSON output for integration with dashboards and further analysis
+- Configurable via CLI flags or JSON config file
 
+#### Configuration Options
+
+**CLI Flags:**
 ```bash
-# Focus on common web ports and show only open results
-python3 nmap_automator_new.py scan.nmap.org -sV -p 80,443 --open
-
-# Optionally, redirect Nikto JSON output to a file for ingestion
-python3 nmap_automator_new.py scan.nmap.org -sV -p 80,443 --open > nikto_scan.json
+--nikto              # Enable Nikto auto-scan (default: enabled)
+--no-nikto           # Disable Nikto auto-scan
+--nikto-path PATH    # Custom path to nikto executable
+--nikto-args "ARGS"  # Extra arguments for Nikto (e.g., "--ssl --Tuning b")
+--nikto-timeout SEC  # Timeout in seconds for Nikto scans
 ```
 
-Notes
-- At present, Nikto JSON is printed to the console; file-based JSON artifacts can be added on request.
-- Ideal for piping into dashboards or log processors.
+**Tools Config File (`tools.config.json`):**
+```json
+{
+  "nikto": {
+    "path": "nikto",
+    "args": "--ssl --Tuning b",
+    "timeout": 600
+  }
+}
+```
+
+#### Usage Examples
+
+**Basic web scan with Nikto:**
+```bash
+python3 nmap_automator_new.py target.com -sV -p 80,443 --open
+```
+
+**Disable Nikto:**
+```bash
+python3 nmap_automator_new.py target.com -sV --no-nikto
+```
+
+**Custom Nikto configuration:**
+```bash
+python3 nmap_automator_new.py target.com -sV --nikto-args "--ssl --Tuning 9" --nikto-timeout 300
+```
+
+**Using config file:**
+```bash
+python3 nmap_automator_new.py @targets.txt -sV --tools-config tools.config.json
+```
+
+#### Nikto Output
+- Displays fancy ASCII banner before scan
+- JSON output printed to console
+- Can be redirected for processing: `> nikto_results.json`
+
+#### Prerequisites
+- Nikto must be installed and in PATH (or specify with `--nikto-path`)
+- Install: `sudo apt install nikto` (Debian/Ubuntu) or download from cirt.net
 
 # 🌐 WebMap Integration
 

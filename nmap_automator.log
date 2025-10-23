@@ -96,3 +96,116 @@ A detailed migration guide is available here: https://github.com/openai/openai-p
 2025-10-22 12:13:56,588 - INFO - Running: nmap -oN nmap_results/scan.nmap.org_20251022_121356.txt -oX nmap_results/scan.nmap.org_20251022_121356.xml scan.nmap.org
 2025-10-22 12:14:19,696 - INFO - Finished scan for scan.nmap.org
 2025-10-22 12:14:19,698 - INFO - Scan iteration completed
+2025-10-22 15:52:08,965 - INFO - Starting scheduled scan iteration
+2025-10-22 15:52:08,973 - INFO - Queuing command for scanme.nmap.org: nmap --script vuln --open -oN nmap_results/scanme.nmap.org_20251022_155208.txt -oX nmap_results/scanme.nmap.org_20251022_155208.xml scanme.nmap.org
+2025-10-22 15:52:08,974 - INFO - Running: nmap --script vuln --open -oN nmap_results/scanme.nmap.org_20251022_155208.txt -oX nmap_results/scanme.nmap.org_20251022_155208.xml scanme.nmap.org
+2025-10-22 16:01:20,281 - INFO - Finished scan for scanme.nmap.org
+2025-10-22 16:01:20,288 - INFO - Scan iteration completed
+2025-10-22 16:01:20,329 - INFO - Running: nmap --script vuln --open -oN nmap_results/scanme.nmap.org_20251022_160120.txt -oX nmap_results/scanme.nmap.org_20251022_160120.xml scanme.nmap.org
+2025-10-22 16:02:54,417 - INFO - Finished scan for scanme.nmap.org
+2025-10-22 16:02:54,420 - INFO - Scan iteration completed
+2025-10-22 18:07:38,180 - INFO - Starting scheduled scan iteration
+2025-10-22 18:07:38,191 - INFO - Queuing command for 172.19.116.101: nmap -sV -sC -oN nmap_results/172.19.116.101_20251022_180738.txt -oX nmap_results/172.19.116.101_20251022_180738.xml 172.19.116.101
+2025-10-22 18:07:38,193 - INFO - Running: nmap -sV -sC -oN nmap_results/172.19.116.101_20251022_180738.txt -oX nmap_results/172.19.116.101_20251022_180738.xml 172.19.116.101
+2025-10-22 18:10:32,662 - INFO - Finished scan for 172.19.116.101
+2025-10-22 18:10:32,673 - INFO - Scan iteration completed
+2025-10-22 18:10:32,676 - INFO - Running: nmap -sV -sC -oN nmap_results/172.19.116.101_20251022_181032.txt -oX nmap_results/172.19.116.101_20251022_181032.xml 172.19.116.101
+2025-10-22 18:10:34,828 - INFO - Finished scan for 172.19.116.101
+2025-10-22 18:10:34,830 - INFO - Scan iteration completed
+2025-10-22 18:11:47,010 - INFO - Starting scheduled scan iteration
+2025-10-22 18:11:47,013 - INFO - Queuing command for 172.19.116.101: nmap -sS --script vuln --open -oN nmap_results/172.19.116.101_20251022_181147.txt -oX nmap_results/172.19.116.101_20251022_181147.xml 172.19.116.101
+2025-10-22 18:11:47,013 - INFO - Running: nmap -sS --script vuln --open -oN nmap_results/172.19.116.101_20251022_181147.txt -oX nmap_results/172.19.116.101_20251022_181147.xml 172.19.116.101
+2025-10-22 18:11:59,232 - INFO - Finished scan for 172.19.116.101
+2025-10-22 18:11:59,238 - INFO - Scan iteration completed
+2025-10-22 18:11:59,238 - INFO - Running: nmap -sS --script vuln --open -oN nmap_results/172.19.116.101_20251022_181159.txt -oX nmap_results/172.19.116.101_20251022_181159.xml 172.19.116.101
+2025-10-22 18:12:11,473 - INFO - Finished scan for 172.19.116.101
+2025-10-22 18:12:11,478 - INFO - Scan iteration completed
+2025-10-22 19:34:58,527 - INFO - Starting scheduled scan iteration
+2025-10-22 19:34:58,533 - INFO - Queuing command for 197.248.13.158: nmap -sS --script vuln -D RND:10 --open -oN nmap_results/197.248.13.158_20251022_193458.txt -oX nmap_results/197.248.13.158_20251022_193458.xml 197.248.13.158
+2025-10-22 19:34:58,534 - INFO - Running: nmap -sS --script vuln -D RND:10 --open -oN nmap_results/197.248.13.158_20251022_193458.txt -oX nmap_results/197.248.13.158_20251022_193458.xml 197.248.13.158
+2025-10-22 19:35:10,507 - WARNING - Interrupted. Shutting down workers...
+2025-10-22 19:35:10,510 - ERROR - nmap returned code -2 for 197.248.13.158: 
+2025-10-22 19:35:10,511 - INFO - Scan iteration completed
+2025-10-22 19:35:10,513 - INFO - Running: nmap -sS --script vuln -D RND:10 --open -oN nmap_results/197.248.13.158_20251022_193510.txt -oX nmap_results/197.248.13.158_20251022_193510.xml 197.248.13.158
+2025-10-22 19:41:57,643 - INFO - Finished scan for 197.248.13.158
+2025-10-22 19:41:57,661 - INFO - Scan iteration completed
+2025-10-22 19:46:30,362 - INFO - Starting scheduled scan iteration
+2025-10-22 19:46:30,366 - INFO - Queuing command for 197.248.13.158: nmap -sV -sC -oN nmap_results/197.248.13.158_20251022_194630.txt -oX nmap_results/197.248.13.158_20251022_194630.xml 197.248.13.158
+2025-10-22 19:46:30,367 - INFO - Running: nmap -sV -sC -oN nmap_results/197.248.13.158_20251022_194630.txt -oX nmap_results/197.248.13.158_20251022_194630.xml 197.248.13.158
+2025-10-22 19:46:48,144 - WARNING - Interrupted. Shutting down workers...
+2025-10-22 19:46:48,189 - ERROR - nmap returned code -2 for 197.248.13.158: 
+2025-10-22 19:46:48,190 - INFO - Scan iteration completed
+2025-10-22 19:46:48,192 - INFO - Running: nmap -sV -sC -oN nmap_results/197.248.13.158_20251022_194648.txt -oX nmap_results/197.248.13.158_20251022_194648.xml 197.248.13.158
+2025-10-22 19:46:51,789 - WARNING - Interrupted. Shutting down workers...
+2025-10-22 19:46:51,846 - ERROR - nmap returned code -2 for 197.248.13.158: 
+2025-10-22 19:46:51,860 - INFO - Scan iteration completed
+2025-10-22 19:48:28,880 - INFO - Starting scheduled scan iteration
+2025-10-22 19:48:28,884 - INFO - Queuing command for 197.248.13.158: nmap -sS --script vuln -D RND:10 --open -oN nmap_results/197.248.13.158_20251022_194828.txt -oX nmap_results/197.248.13.158_20251022_194828.xml 197.248.13.158
+2025-10-22 19:48:28,885 - INFO - Running: nmap -sS --script vuln -D RND:10 --open -oN nmap_results/197.248.13.158_20251022_194828.txt -oX nmap_results/197.248.13.158_20251022_194828.xml 197.248.13.158
+2025-10-22 19:49:06,607 - WARNING - Interrupted. Shutting down workers...
+2025-10-22 19:49:06,634 - ERROR - nmap returned code -2 for 197.248.13.158: 
+2025-10-22 19:49:06,635 - INFO - Scan iteration completed
+2025-10-22 19:49:06,636 - INFO - Running: nmap -sS --script vuln -D RND:10 --open -oN nmap_results/197.248.13.158_20251022_194906.txt -oX nmap_results/197.248.13.158_20251022_194906.xml 197.248.13.158
+2025-10-22 20:04:22,850 - WARNING - Interrupted. Shutting down workers...
+2025-10-22 20:04:22,958 - ERROR - nmap returned code -2 for 197.248.13.158: NSOCK INFO [5.4310s] nsock_trace_handler_callback(): Callback: READ TIMEOUT for EID 18 [224.0.0.251:5353]
+NSOCK INFO [5.4340s] nsock_sendto(): Sendto request for 46 bytes to IOD #1 EID 27 [224.0.0.251:5353]
+NSOCK INFO [5.4350s] nsock_trace_handler_callback(): Callback: WRITE SUCCESS for EID 27 [224.0.0.251:5353]
+NSOCK INFO [5.4380s] nsock_read(): Read request from IOD #1 [224.0.0.251:5353] (timeout: 5000ms) EID 34
+NSOCK INFO [10.4380s] nsock_trace_handler_callback(): Callback: READ TIMEOUT for EID 34 [224.0.0.251:5353]
+NSOCK INFO [10.4390s] nsock_iod_delete(): nsock_iod_delete (IOD #1)
+NSOCK INFO [10.5360s] nsock_iod_new2(): nsock_iod_new (IOD #1)
+NSOCK INFO [10.5360s] nsock_connect_udp(): UDP connection requested to 100.124.45.56:53 (IOD #1) EID 8
+NSOCK INFO [10.5360s] nsock_read(): Read request from IOD #1 [100.124.45.56:53] (timeout: -1ms) EID 18
+NSOCK INFO [10.5360s] nsock_iod_new2(): nsock_iod_new (IOD #2)
+NSOCK INFO [10.5360s] nsock_connect_udp(): UDP connection requested to 172.19.112.1:53 (IOD #2) EID 24
+NSOCK INFO [10.5370s] nsock_read(): Read request from IOD #2 [172.19.112.1:53] (timeout: -1ms) EID 34
+NSOCK INFO [10.5370s] nsock_write(): Write request for 45 bytes to IOD #1 EID 43 [100.124.45.56:53]
+NSOCK INFO [10.5370s] nsock_trace_handler_callback(): Callback: CONNECT SUCCESS for EID 8 [100.124.45.56:53]
+NSOCK INFO [10.5370s] nsock_trace_handler_callback(): Callback: WRITE SUCCESS for EID 43 [100.124.45.56:53]
+NSOCK INFO [10.5370s] nsock_trace_handler_callback(): Callback: CONNECT SUCCESS for EID 24 [172.19.112.1:53]
+NSOCK INFO [10.5540s] nsock_trace_handler_callback(): Callback: READ SUCCESS for EID 18 [100.124.45.56:53] (124 bytes)
+NSOCK INFO [10.5540s] nsock_read(): Read request from IOD #1 [100.124.45.56:53] (timeout: -1ms) EID 50
+NSOCK INFO [13.0360s] nsock_write(): Write request for 45 bytes to IOD #1 EID 59 [100.124.45.56:53]
+NSOCK INFO [13.0360s] nsock_trace_handler_callback(): Callback: WRITE SUCCESS for EID 59 [100.124.45.56:53]
+NSOCK INFO [13.0390s] nsock_trace_handler_callback(): Callback: READ SUCCESS for EID 50 [100.124.45.56:53] (124 bytes)
+NSOCK INFO [13.0390s] nsock_read(): Read request from IOD #1 [100.124.45.56:53] (timeout: -1ms) EID 66
+NSOCK INFO [17.0360s] nsock_write(): Write request for 45 bytes to IOD #2 EID 75 [172.19.112.1:53]
+NSOCK INFO [17.0360s] nsock_trace_handler_callback(): Callback: WRITE SUCCESS for EID 75 [172.19.112.1:53]
+NSOCK INFO [17.0380s] nsock_trace_handler_callback(): Callback: READ SUCCESS for EID 34 [172.19.112.1:53] (124 bytes)
+NSOCK INFO [17.0380s] nsock_read(): Read request from IOD #2 [172.19.112.1:53] (timeout: -1ms) EID 82
+NSOCK INFO [17.0380s] nsock_iod_delete(): nsock_iod_delete (IOD #1)
+NSOCK INFO [17.0380s] nevent_delete(): nevent_delete on event #66 (type READ)
+NSOCK INFO [17.0380s] nsock_iod_delete(): nsock_iod_delete (IOD #2)
+NSOCK INFO [17.0380s] nevent_delete(): nevent_delete on event #82 (type READ)
+2025-10-22 20:04:22,966 - INFO - Scan iteration completed
+2025-10-22 20:06:27,112 - INFO - Starting scheduled scan iteration
+2025-10-22 20:06:27,115 - INFO - Queuing command for 197.248.13.158: nmap -sS --script vuln --open -oN nmap_results/197.248.13.158_20251022_200627.txt -oX nmap_results/197.248.13.158_20251022_200627.xml 197.248.13.158
+2025-10-22 20:06:27,115 - INFO - Running: nmap -sS --script vuln --open -oN nmap_results/197.248.13.158_20251022_200627.txt -oX nmap_results/197.248.13.158_20251022_200627.xml 197.248.13.158
+2025-10-22 20:12:10,673 - WARNING - Interrupted. Shutting down workers...
+2025-10-22 20:12:10,756 - ERROR - nmap returned code -2 for 197.248.13.158: 
+2025-10-22 20:12:10,759 - INFO - Scan iteration completed
+2025-10-22 20:12:10,761 - INFO - Running: nmap -sS --script vuln --open -oN nmap_results/197.248.13.158_20251022_201210.txt -oX nmap_results/197.248.13.158_20251022_201210.xml 197.248.13.158
+2025-10-22 20:18:51,725 - INFO - Finished scan for 197.248.13.158
+2025-10-22 20:18:51,743 - INFO - Scan iteration completed
+2025-10-22 20:30:57,994 - INFO - Starting scheduled scan iteration
+2025-10-22 20:30:57,996 - INFO - Queuing command for 197.248.13.158: nmap -sS --script vuln -v --open -oN nmap_results/197.248.13.158_20251022_203057.txt -oX nmap_results/197.248.13.158_20251022_203057.xml 197.248.13.158
+2025-10-22 20:30:57,997 - INFO - Running: nmap -sS --script vuln -v --open -oN nmap_results/197.248.13.158_20251022_203057.txt -oX nmap_results/197.248.13.158_20251022_203057.xml 197.248.13.158
+2025-10-22 20:37:32,917 - INFO - Finished scan for 197.248.13.158
+2025-10-22 20:37:32,921 - INFO - Scan iteration completed
+2025-10-22 20:37:32,921 - INFO - Running: nmap -sS --script vuln -v --open -oN nmap_results/197.248.13.158_20251022_203732.txt -oX nmap_results/197.248.13.158_20251022_203732.xml 197.248.13.158
+2025-10-22 20:46:27,538 - INFO - Starting scheduled scan iteration
+2025-10-22 20:46:27,543 - INFO - Queuing command for 197.248.13.158: nmap -T5 --top-ports 20 -Pn -n --min-rate 1000 -oN nmap_results/197.248.13.158_20251022_204627.txt -oX nmap_results/197.248.13.158_20251022_204627.xml 197.248.13.158
+2025-10-22 20:46:27,544 - INFO - Running: nmap -T5 --top-ports 20 -Pn -n --min-rate 1000 -oN nmap_results/197.248.13.158_20251022_204627.txt -oX nmap_results/197.248.13.158_20251022_204627.xml 197.248.13.158
+2025-10-22 20:46:27,952 - INFO - Finished scan for 197.248.13.158
+2025-10-22 20:46:27,954 - INFO - Scan iteration completed
+2025-10-22 20:46:27,959 - INFO - Running: nmap -T5 --top-ports 20 -Pn -n --min-rate 1000 -oN nmap_results/197.248.13.158_20251022_204627.txt -oX nmap_results/197.248.13.158_20251022_204627.xml 197.248.13.158
+2025-10-22 20:46:28,368 - INFO - Finished scan for 197.248.13.158
+2025-10-22 20:46:28,375 - INFO - Scan iteration completed
+2025-10-22 20:47:10,864 - INFO - Starting scheduled scan iteration
+2025-10-22 20:47:10,866 - INFO - Queuing command for 197.248.13.158: nmap -p 80,443,8080,8443 -sV -T4 -oN nmap_results/197.248.13.158_20251022_204710.txt -oX nmap_results/197.248.13.158_20251022_204710.xml 197.248.13.158
+2025-10-22 20:47:10,866 - INFO - Running: nmap -p 80,443,8080,8443 -sV -T4 -oN nmap_results/197.248.13.158_20251022_204710.txt -oX nmap_results/197.248.13.158_20251022_204710.xml 197.248.13.158
+2025-10-22 20:47:38,483 - INFO - Finished scan for 197.248.13.158
+2025-10-22 20:47:38,503 - INFO - Scan iteration completed
+2025-10-22 20:47:38,506 - INFO - Running: nmap -p 80,443,8080,8443 -sV -T4 -oN nmap_results/197.248.13.158_20251022_204738.txt -oX nmap_results/197.248.13.158_20251022_204738.xml 197.248.13.158
+2025-10-22 20:48:05,696 - INFO - Finished scan for 197.248.13.158
+2025-10-22 20:48:05,701 - INFO - Scan iteration completed
