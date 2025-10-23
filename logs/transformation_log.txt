@@ -1,0 +1,28 @@
+NMAP Automator Cloud Transformation Log
+==================================================
+Transformation Date: 2025-10-23 10:51:07.639678
+
+[10:51:05] INFO: Creating backup of existing installation...
+[10:51:05] INFO: Backed up: nmap_automator_optimized.py
+[10:51:05] INFO: Backed up: requirements.txt
+[10:51:05] INFO: Backed up: evasion_profiles.py
+[10:51:05] INFO: Backed up: performance_optimizer.py
+[10:51:05] INFO: Backed up: async_scan_engine.py
+[10:51:05] INFO: Backed up: vuln_analyzer.py
+[10:51:05] INFO: Backed up: tool_chain.py
+[10:51:05] INFO: Backed up directory: nmap_results
+[10:51:05] INFO: Backed up directory: test_results
+[10:51:05] INFO: Backed up directory: webmap_results
+[10:51:05] SUCCESS: Backup completed successfully
+[10:51:05] INFO: Installing cloud scanning dependencies...
+[10:51:07] WARNING: Warning: Some dependencies may need manual installation: Command '['/usr/bin/python3', '-m', 'pip', 'install', '-r', 'requirements-cloud.txt']' returned non-zero exit status 1.
+[10:51:07] INFO: You can install them later with: pip install -r requirements-cloud.txt
+[10:51:07] INFO: Creating cloud configuration templates...
+[10:51:07] SUCCESS: Cloud configuration templates created
+[10:51:07] INFO: Updating .gitignore for cloud security...
+[10:51:07] INFO: Updated .gitignore with cloud security entries
+[10:51:07] INFO: Creating migration helper scripts...
+[10:51:07] SUCCESS: Migration helper scripts created
+[10:51:07] INFO: Creating cloud platform documentation...
+[10:51:07] SUCCESS: Cloud platform documentation created
+[10:51:07] INFO: Running platform validation...

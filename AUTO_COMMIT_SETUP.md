@@ -13,7 +13,7 @@ Your SecureScout project now has a comprehensive auto-commit system that will he
 - ✅ Repository status reporting
 
 #### 2. **Pre-Commit Hooks** (`.git/hooks/pre-commit`)
-- ✅ Sensitive information detection (API keys, passwords)
+- **Sensitive Data Protection**: Automatically detects API keys, credentials, secrets
 - ✅ Python syntax validation for all .py files
 - ✅ Quality checks before each commit
 
@@ -67,7 +67,7 @@ The system automatically categorizes your commits:
 
 ### 🔒 **Security Features:**
 
-- **Sensitive Data Protection**: Automatically detects API keys, passwords, secrets
+- **Sensitive Data Protection**: Automatically detects API keys, credentials, secrets
 - **Python Syntax Validation**: Prevents committing broken Python code
 - **Smart .gitignore**: Excludes cache files, logs, temporary data
 - **Quality Gates**: Pre-commit hooks ensure code quality
