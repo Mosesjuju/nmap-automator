@@ -1,4 +1,0 @@
-52.74.223.119
-34.237.111.23
-prod-cluster.us-east-1.rds.amazonaws.com
-20.62.158.143

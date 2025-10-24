@@ -1,188 +1,372 @@
-#!/usr/bin/env python3
-"""
-Performance Optimization Module for NMAP Automator v1.2.0
-Provides async processing, caching, and resource management capabilities
-"""
+#!/usr/bin/env python3#!/usr/bin/env python3
 
-import asyncio
-import aiofiles
-import functools
-import hashlib
-import json
-import logging
-import os
-import time
-import threading
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
-from dataclasses import dataclass, asdict
-from typing import Dict, List, Optional, Any, Callable, Union
-from pathlib import Path
-import psutil
-import gc
-import weakref
+""""""
 
-logger = logging.getLogger(__name__)
+Performance Optimization Module for NMAP Automator v1.2.0Performance Optimization Module for NMAP Automator v1.2.0
+
+Provides async processing and resource management capabilities (Smart caching removed)Provides async processing, caching, and resource management capabilities
+
+""""""
 
 
-@dataclass
-class PerformanceMetrics:
-    """Performance metrics tracking"""
-    start_time: float
-    end_time: Optional[float] = None
-    memory_usage_mb: float = 0.0
-    cpu_usage_percent: float = 0.0
-    network_io_bytes: int = 0
-    disk_io_bytes: int = 0
-    cache_hits: int = 0
-    cache_misses: int = 0
-    
-    @property
-    def duration(self) -> float:
-        if self.end_time:
-            return self.end_time - self.start_time
-        return time.time() - self.start_time
-        
+
+import asyncioimport asyncio
+
+import aiofilesimport aiofiles
+
+import functoolsimport functools
+
+import hashlibimport hashlib
+
+import jsonimport json
+
+import loggingimport logging
+
+import osimport os
+
+import timeimport time
+
+import threadingimport threading
+
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completedfrom concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
+
+from dataclasses import dataclass, asdictfrom dataclasses import dataclass, asdict
+
+from typing import Dict, List, Optional, Any, Callable, Unionfrom typing import Dict, List, Optional, Any, Callable, Union
+
+from pathlib import Pathfrom pathlib import Path
+
+import psutilimport psutil
+
+import gcimport gc
+
+import weakrefimport weakref
+
+
+
+logger = logging.getLogger(__name__)logger = logging.getLogger(__name__)
+
+
+
+
+
+@dataclass@dataclass
+
+class PerformanceMetrics:class PerformanceMetrics:
+
+    """Performance metrics tracking"""    """Performance metrics tracking"""
+
+    start_time: float    start_time: float
+
+    end_time: Optional[float] = None    end_time: Optional[float] = None
+
+    memory_usage_mb: float = 0.0    memory_usage_mb: float = 0.0
+
+    cpu_usage_percent: float = 0.0    cpu_usage_percent: float = 0.0
+
+    network_io_bytes: int = 0    network_io_bytes: int = 0
+
+    disk_io_bytes: int = 0    disk_io_bytes: int = 0
+
+        cache_hits: int = 0
+
+    @property    cache_misses: int = 0
+
+    def duration(self) -> float:    
+
+        if self.end_time:    @property
+
+            return self.end_time - self.start_time    def duration(self) -> float:
+
+        return time.time() - self.start_time        if self.end_time:
+
+                    return self.end_time - self.start_time
+
+    def to_dict(self) -> Dict:        return time.time() - self.start_time
+
+        return asdict(self)        
+
     def to_dict(self) -> Dict:
+
         return asdict(self)
 
-
 class ResourceMonitor:
+
     """System resource monitoring and management"""
-    
-    def __init__(self):
-        self.process = psutil.Process()
-        self.initial_memory = self.get_memory_usage()
-        self.peak_memory = 0.0
-        
-    def get_memory_usage(self) -> float:
-        """Get current memory usage in MB"""
-        return self.process.memory_info().rss / 1024 / 1024
-        
-    def get_cpu_usage(self) -> float:
-        """Get current CPU usage percentage"""
-        return self.process.cpu_percent()
-        
-    def get_network_io(self) -> int:
-        """Get network I/O bytes"""
-        try:
-            return self.process.io_counters().read_bytes + self.process.io_counters().write_bytes
-        except:
-            return 0
-            
-    def update_peak_memory(self):
-        """Update peak memory usage"""
-        current = self.get_memory_usage()
+
+    class ResourceMonitor:
+
+    def __init__(self):    """System resource monitoring and management"""
+
+        self.metrics = PerformanceMetrics(start_time=time.time())    
+
+        self._monitoring = False    def __init__(self):
+
+                self.process = psutil.Process()
+
+    def start_monitoring(self):        self.initial_memory = self.get_memory_usage()
+
+        """Start resource monitoring"""        self.peak_memory = 0.0
+
+        self._monitoring = True        
+
+        self.metrics = PerformanceMetrics(start_time=time.time())    def get_memory_usage(self) -> float:
+
+                """Get current memory usage in MB"""
+
+    def stop_monitoring(self):        return self.process.memory_info().rss / 1024 / 1024
+
+        """Stop resource monitoring and finalize metrics"""        
+
+        self._monitoring = False    def get_cpu_usage(self) -> float:
+
+        self.metrics.end_time = time.time()        """Get current CPU usage percentage"""
+
+        self.metrics.memory_usage_mb = psutil.virtual_memory().used / 1024 / 1024        return self.process.cpu_percent()
+
+        self.metrics.cpu_usage_percent = psutil.cpu_percent()        
+
+            def get_network_io(self) -> int:
+
+    def get_current_metrics(self) -> PerformanceMetrics:        """Get network I/O bytes"""
+
+        """Get current performance metrics"""        try:
+
+        current_metrics = PerformanceMetrics(            return self.process.io_counters().read_bytes + self.process.io_counters().write_bytes
+
+            start_time=self.metrics.start_time,        except:
+
+            end_time=time.time(),            return 0
+
+            memory_usage_mb=psutil.virtual_memory().used / 1024 / 1024,            
+
+            cpu_usage_percent=psutil.cpu_percent(interval=0.1)    def update_peak_memory(self):
+
+        )        """Update peak memory usage"""
+
+        return current_metrics        current = self.get_memory_usage()
+
         if current > self.peak_memory:
+
             self.peak_memory = current
+
+class AsyncProcessor:            
+
+    """Asynchronous processing for concurrent operations"""    def get_cpu_count(self) -> int:
+
+            """Get CPU count"""
+
+    def __init__(self, max_workers: int = None):        return psutil.cpu_count()
+
+        self.max_workers = max_workers or min(32, (os.cpu_count() or 1) + 4)        
+
+        self.thread_executor = ThreadPoolExecutor(max_workers=self.max_workers)    def suggest_optimization(self) -> List[str]:
+
+        self.process_executor = ProcessPoolExecutor(max_workers=min(4, os.cpu_count() or 1))        """Suggest performance optimizations"""
+
+                suggestions = []
+
+    async def execute_async(self, func: Callable, *args, **kwargs) -> Any:        
+
+        """Execute function asynchronously"""        memory_usage = self.get_memory_usage()
+
+        loop = asyncio.get_event_loop()        cpu_usage = self.get_cpu_usage()
+
+        return await loop.run_in_executor(self.thread_executor, func, *args, **kwargs)        
+
+            if memory_usage > 1000:  # > 1GB
+
+    async def execute_parallel(self, tasks: List[Callable]) -> List[Any]:            suggestions.append("High memory usage detected - consider enabling memory optimization")
+
+        """Execute multiple tasks in parallel"""            
+
+        return await asyncio.gather(*[self.execute_async(task) for task in tasks])        if cpu_usage > 80:
+
+                suggestions.append("High CPU usage - consider reducing thread count")
+
+    def cleanup(self):            
+
+        """Clean up executors"""        available_cpu = psutil.cpu_count()
+
+        self.thread_executor.shutdown(wait=True)        if available_cpu > 4:
+
+        self.process_executor.shutdown(wait=True)            suggestions.append(f"Multi-core system detected ({available_cpu} cores) - increase parallelism")
+
             
-    def get_cpu_count(self) -> int:
-        """Get CPU count"""
-        return psutil.cpu_count()
-        
-    def suggest_optimization(self) -> List[str]:
-        """Suggest performance optimizations"""
-        suggestions = []
-        
-        memory_usage = self.get_memory_usage()
-        cpu_usage = self.get_cpu_usage()
-        
-        if memory_usage > 1000:  # > 1GB
-            suggestions.append("High memory usage detected - consider enabling memory optimization")
-            
-        if cpu_usage > 80:
-            suggestions.append("High CPU usage - consider reducing thread count")
-            
-        available_cpu = psutil.cpu_count()
-        if available_cpu > 4:
-            suggestions.append(f"Multi-core system detected ({available_cpu} cores) - increase parallelism")
-            
+
         return suggestions
 
+class PerformanceOptimizer:
 
-class IntelligentCache:
-    """Advanced intelligent caching system with smart eviction, adaptive TTL, and predictive caching"""
-    
-    def __init__(self, max_size: int = 1000, default_ttl: int = 3600, enable_persistence: bool = True):
-        self.max_size = max_size
-        self.default_ttl = default_ttl
-        self.enable_persistence = enable_persistence
-        self.cache: Dict[str, Dict] = {}
-        self.access_times: Dict[str, float] = {}
-        self.access_frequency: Dict[str, int] = {}
-        self.computation_times: Dict[str, float] = {}
-        self.cache_priorities: Dict[str, float] = {}
-        self.hits = 0
-        self.misses = 0
-        self.adaptive_hits = 0
-        self.predictive_hits = 0
-        self._lock = threading.RLock()
-        self._cache_file = Path("cache/cache_persistence.json")
-        self._load_persistent_cache()
+    """Main performance optimization coordinator (without caching)"""
+
+    class IntelligentCache:
+
+    def __init__(self):    """Advanced intelligent caching system with smart eviction, adaptive TTL, and predictive caching"""
+
+        self.resource_monitor = ResourceMonitor()    
+
+        self.async_processor = AsyncProcessor()    def __init__(self, max_size: int = 1000, default_ttl: int = 3600, enable_persistence: bool = True):
+
+        self.performance_log = []        self.max_size = max_size
+
+                self.default_ttl = default_ttl
+
+    def start_performance_tracking(self):        self.enable_persistence = enable_persistence
+
+        """Start performance tracking"""        self.cache: Dict[str, Dict] = {}
+
+        self.resource_monitor.start_monitoring()        self.access_times: Dict[str, float] = {}
+
+        logger.info("Performance tracking started")        self.access_frequency: Dict[str, int] = {}
+
+                self.computation_times: Dict[str, float] = {}
+
+    def stop_performance_tracking(self) -> PerformanceMetrics:        self.cache_priorities: Dict[str, float] = {}
+
+        """Stop performance tracking and return metrics"""        self.hits = 0
+
+        self.resource_monitor.stop_monitoring()        self.misses = 0
+
+        metrics = self.resource_monitor.get_current_metrics()        self.adaptive_hits = 0
+
+        self.performance_log.append(metrics)        self.predictive_hits = 0
+
+        logger.info(f"Performance tracking completed - Duration: {metrics.duration:.2f}s")        self._lock = threading.RLock()
+
+        return metrics        self._cache_file = Path("cache/cache_persistence.json")
+
+            self._load_persistent_cache()
+
+    def get_performance_summary(self) -> Dict[str, Any]:        
+
+        """Get comprehensive performance summary"""        # Smart caching analytics
+
+        if not self.performance_log:        self.access_patterns: Dict[str, List[float]] = {}
+
+            return {"message": "No performance data available"}        self.prediction_buffer: Dict[str, Any] = {}
+
+                    
+
+        recent_metrics = self.performance_log[-10:]  # Last 10 operations    def _generate_key(self, *args, **kwargs) -> str:
+
+                """Generate cache key from arguments with smart normalization"""
+
+        avg_duration = sum(m.duration for m in recent_metrics) / len(recent_metrics)        # Normalize arguments for better cache hits
+
+        avg_memory = sum(m.memory_usage_mb for m in recent_metrics) / len(recent_metrics)        normalized_args = []
+
+        peak_memory = max(m.memory_usage_mb for m in recent_metrics)        for arg in args:
+
+                    if isinstance(arg, (list, tuple)):
+
+        return {                normalized_args.append(tuple(sorted(arg)) if all(isinstance(x, str) for x in arg) else tuple(arg))
+
+            "operations": len(self.performance_log),            else:
+
+            "average_duration": round(avg_duration, 2),                normalized_args.append(arg)
+
+            "average_memory_mb": round(avg_memory, 2),                
+
+            "peak_memory_mb": round(peak_memory, 2),        key_data = json.dumps({
+
+            "last_operation": recent_metrics[-1].to_dict() if recent_metrics else None            "args": normalized_args, 
+
+        }            "kwargs": sorted(kwargs.items())
+
+            }, sort_keys=True, default=str)
+
+    def cleanup(self):        return hashlib.sha256(key_data.encode()).hexdigest()[:16]  # Shorter keys for performance
+
+        """Clean up resources"""        
+
+        self.async_processor.cleanup()    def _is_expired(self, entry: Dict) -> bool:
+
+        gc.collect()        """Check if cache entry is expired with adaptive TTL"""
+
+        logger.info("Performance optimizer resources cleaned up")        base_expiry = entry.get('expires_at', 0)
+
         
-        # Smart caching analytics
-        self.access_patterns: Dict[str, List[float]] = {}
-        self.prediction_buffer: Dict[str, Any] = {}
-        
-    def _generate_key(self, *args, **kwargs) -> str:
-        """Generate cache key from arguments with smart normalization"""
-        # Normalize arguments for better cache hits
-        normalized_args = []
-        for arg in args:
-            if isinstance(arg, (list, tuple)):
-                normalized_args.append(tuple(sorted(arg)) if all(isinstance(x, str) for x in arg) else tuple(arg))
-            else:
-                normalized_args.append(arg)
-                
-        key_data = json.dumps({
-            "args": normalized_args, 
-            "kwargs": sorted(kwargs.items())
-        }, sort_keys=True, default=str)
-        return hashlib.sha256(key_data.encode()).hexdigest()[:16]  # Shorter keys for performance
-        
-    def _is_expired(self, entry: Dict) -> bool:
-        """Check if cache entry is expired with adaptive TTL"""
-        base_expiry = entry.get('expires_at', 0)
-        
+
         # Adaptive TTL based on access frequency
-        key = entry.get('key')
-        if key and key in self.access_frequency:
+
+# Global performance optimizer instance        key = entry.get('key')
+
+performance_optimizer = PerformanceOptimizer()        if key and key in self.access_frequency:
+
             frequency = self.access_frequency[key]
+
             computation_time = self.computation_times.get(key, 1.0)
-            
-            # Extend TTL for frequently accessed, expensive computations
-            adaptive_multiplier = min(3.0, 1 + (frequency / 10) * (computation_time / 10))
-            adaptive_expiry = entry.get('created_at', 0) + (self.default_ttl * adaptive_multiplier)
-            
-            return time.time() > max(base_expiry, adaptive_expiry)
-            
-        return time.time() > base_expiry
-        
-    def _calculate_priority(self, key: str) -> float:
-        """Calculate cache entry priority for smart eviction"""
+
+def track_performance(func: Callable) -> Callable:            
+
+    """Decorator to track function performance"""            # Extend TTL for frequently accessed, expensive computations
+
+    @functools.wraps(func)            adaptive_multiplier = min(3.0, 1 + (frequency / 10) * (computation_time / 10))
+
+    def wrapper(*args, **kwargs):            adaptive_expiry = entry.get('created_at', 0) + (self.default_ttl * adaptive_multiplier)
+
+        performance_optimizer.start_performance_tracking()            
+
+        try:            return time.time() > max(base_expiry, adaptive_expiry)
+
+            result = func(*args, **kwargs)            
+
+            return result        return time.time() > base_expiry
+
+        finally:        
+
+            performance_optimizer.stop_performance_tracking()    def _calculate_priority(self, key: str) -> float:
+
+    return wrapper        """Calculate cache entry priority for smart eviction"""
+
         frequency = self.access_frequency.get(key, 1)
+
         recency = time.time() - self.access_times.get(key, time.time())
-        computation_time = self.computation_times.get(key, 1.0)
-        
-        # Higher priority = more valuable to keep
+
+async def optimize_scan_execution(scan_functions: List[Callable]) -> List[Any]:        computation_time = self.computation_times.get(key, 1.0)
+
+    """Optimize execution of multiple scan functions"""        
+
+    return await performance_optimizer.async_processor.execute_parallel(scan_functions)        # Higher priority = more valuable to keep
+
         # Factors: frequency, recency (inverse), computation cost
+
         priority = (frequency * computation_time) / (1 + recency / 3600)  # Decay over hours
-        return priority
-        
-    def _smart_evict(self):
-        """Smart eviction based on priority scoring"""
-        with self._lock:
-            if len(self.cache) >= self.max_size:
+
+def log_performance_metrics(operation_name: str, metrics: PerformanceMetrics):        return priority
+
+    """Log detailed performance metrics"""        
+
+    logger.info(f"📊 Performance Metrics for {operation_name}:")    def _smart_evict(self):
+
+    logger.info(f"   Duration: {metrics.duration:.2f}s")        """Smart eviction based on priority scoring"""
+
+    logger.info(f"   Memory Usage: {metrics.memory_usage_mb:.2f}MB")        with self._lock:
+
+    logger.info(f"   CPU Usage: {metrics.cpu_usage_percent:.1f}%")            if len(self.cache) >= self.max_size:
+
                 # Calculate priorities for all entries
+
                 priorities = {key: self._calculate_priority(key) for key in self.cache.keys()}
-                
-                # Sort by priority (lowest first) and remove bottom 30%
-                sorted_keys = sorted(priorities.keys(), key=priorities.get)
-                keys_to_remove = sorted_keys[:max(1, len(sorted_keys) // 3)]
-                
-                for key in keys_to_remove:
-                    self.cache.pop(key, None)
-                    self.access_times.pop(key, None)
-                    self.access_frequency.pop(key, None)
+
+# Legacy compatibility - remove caching references                
+
+def get_cache_analytics():                # Sort by priority (lowest first) and remove bottom 30%
+
+    """Legacy function - returns empty analytics"""                sorted_keys = sorted(priorities.keys(), key=priorities.get)
+
+    return {                keys_to_remove = sorted_keys[:max(1, len(sorted_keys) // 3)]
+
+        "hit_rate": 0,                
+
+        "entries": 0,                for key in keys_to_remove:
+
+        "memory_usage_mb": 0,                    self.cache.pop(key, None)
+
+        "performance_improvement": "Caching disabled"                    self.access_times.pop(key, None)
+
+    }                    self.access_frequency.pop(key, None)
                     self.computation_times.pop(key, None)
                     self.cache_priorities.pop(key, None)
                     

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 NMAP Automator v1.2.1 - Performance Optimized Edition
-Enhanced with async processing, intelligent caching, and resource optimization
+Enhanced with async processing and resource optimization
 """
 
 # Standard library imports
@@ -28,6 +28,16 @@ from colorama import Fore, Style, init
 # Local imports
 import sys
 import os
+
+# Add tools directory to path for banner import
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'tools'))
+try:
+    from banner_generator import display_banner
+    BANNERS_AVAILABLE = True
+except ImportError:
+    BANNERS_AVAILABLE = False
+    def display_banner(tool_name, color_code=None):
+        print(f"NMAP AUTOMATOR v1.2.1 - {tool_name.upper()} MODE")
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'tools'))
 from vuln_analyzer import VulnerabilityAnalyzer
 from tool_chain import ToolChain, show_available_tools, print_tool_chain_banner
@@ -38,6 +48,11 @@ from performance_optimizer import (
     performance_optimized, 
     PerformanceProfiler,
     OptimizedExecutor,
+    global_cache,
+    get_optimal_thread_count,
+    cleanup_performance_resources
+)
+from performance_logger import performance_logger, PerformanceContext, track_performance
     global_cache,
     get_optimal_thread_count,
     cleanup_performance_resources
@@ -118,14 +133,17 @@ def run_masscan_discovery(target, output_file, rate=1000, ports="1-65535"):
     
     metrics = profiler.start_profiling("masscan_discovery")
     
-    try:
-        # Resolve hostname to IP if needed (masscan prefers IPs)
+    with PerformanceContext("masscan", target, {"rate": rate, "ports": ports}):
         try:
-            resolved_target = socket.gethostbyname(target)
-            if resolved_target != target:
-                print(f"🔍 Resolved {target} → {resolved_target}")
-        except socket.gaierror:
-            resolved_target = target  # Use original if resolution fails
+            # Resolve hostname to IP if needed (masscan prefers IPs)
+            try:
+                resolved_target = socket.gethostbyname(target)
+                if resolved_target != target:
+                    print(f"🔍 Resolved {target} → {resolved_target}")
+                    performance_logger.log_event("hostname_resolved", "masscan", target, 
+                                               {"resolved_ip": resolved_target})
+            except socket.gaierror:
+                resolved_target = target  # Use original if resolution fails
         
         # Check if we need sudo
         cmd = []
@@ -571,24 +589,36 @@ def process_async_results(results, target, grok_key, tool_chain_config, burp_con
 def process_scan_results(cmd, target, grok_key, tool_chain_config, burp_config):
     """Process scan results with caching and optimization"""
     
-    # Find XML output file
-    xml_file = None
-    for i, arg in enumerate(cmd):
-        if arg == '-oX' and i + 1 < len(cmd):
-            xml_file = cmd[i + 1]
-            break
-    
-    if not xml_file or not os.path.exists(xml_file):
-        logger.warning(f"No XML output found for {target}")
-        return True  # Still consider successful
-    
-    # Parse XML with caching
-    findings = parse_nmap_xml(xml_file)
-    if not findings:
-        logger.warning(f"Could not parse scan results for {target}")
-        return False
-    
-    return _process_findings(findings, target, grok_key, tool_chain_config, burp_config, xml_file)
+    with PerformanceContext("nmap_processing", target, {"scan_type": "result_processing"}):
+        # Find XML output file
+        xml_file = None
+        for i, arg in enumerate(cmd):
+            if arg == '-oX' and i + 1 < len(cmd):
+                xml_file = cmd[i + 1]
+                break
+        
+        if not xml_file or not os.path.exists(xml_file):
+            logger.warning(f"No XML output found for {target}")
+            performance_logger.log_event("scan_warning", "nmap", target, 
+                                       {"issue": "no_xml_output"})
+            return True  # Still consider successful
+        
+        # Parse XML with caching
+        findings = parse_nmap_xml(xml_file)
+        if not findings:
+            logger.warning(f"Could not parse scan results for {target}")
+            performance_logger.log_event("scan_error", "nmap", target, 
+                                       {"issue": "xml_parse_failed"})
+            return False
+        
+        # Log findings count
+        performance_logger.log_event("scan_results", "nmap", target, {
+            "open_ports": len(findings.get('open_ports', [])),
+            "vulnerabilities": len(findings.get('vulnerabilities', [])),
+            "xml_file": xml_file
+        })
+        
+        return _process_findings(findings, target, grok_key, tool_chain_config, burp_config, xml_file)
 
 
 def _process_findings(findings, target, grok_key, tool_chain_config, burp_config, xml_file=None):
@@ -896,9 +926,14 @@ def run_scheduled_scan(args, targets, extra_args_str, tool_chain_config, burp_co
 @performance_optimized()
 def get_performance_report():
     """Generate comprehensive performance report"""
+    
+    # Get detailed performance summary from new logger
+    detailed_summary = performance_logger.get_performance_summary(24)  # Last 24 hours
+    
     return {
         'version': __version__,
-        'performance_metrics': profiler.get_performance_summary(),
+        'detailed_performance': detailed_summary,
+        'legacy_metrics': profiler.get_performance_summary(),
         'cache_stats': global_cache.get_stats(),
         'system_resources': {
             'cpu_count': profiler.resource_monitor.get_cpu_count(),
@@ -915,10 +950,16 @@ def main():
     # Performance monitoring
     main_metrics = profiler.start_profiling("main_execution")
     
+    # Initialize performance logging
+    performance_logger.log_event("application_start", "nmap_automator", "system", 
+                                {"version": "1.2.1", "mode": "optimized"})
+    
     try:
         nmap_path = check_nmap_available()
         if not nmap_path:
             print(f"{Fore.RED}Error: nmap not found in PATH. Please install nmap.{Style.RESET_ALL}")
+            performance_logger.log_event("application_error", "nmap_automator", "system", 
+                                       {"error": "nmap_not_found"})
             sys.exit(2)
 
         print(f"{Fore.GREEN}NMAP AUTOMATOR v{__version__} - Performance Optimized Edition{Style.RESET_ALL}")
@@ -989,6 +1030,8 @@ Examples:
         perfgroup = parser.add_argument_group('⚡ Performance Optimization')
         perfgroup.add_argument('--performance-report', action='store_true', 
                              help='Show comprehensive performance metrics and exit')
+        perfgroup.add_argument('--performance-format', choices=['json', 'csv', 'txt'], 
+                             default='txt', help='Performance report format (default: txt)')
         perfgroup.add_argument('--optimize-config', action='store_true', 
                              help='Auto-optimize configuration based on system resources')
         perfgroup.add_argument('--cache-clear', action='store_true', 
@@ -1088,9 +1131,42 @@ Examples:
         # Handle special performance commands
         if args.performance_report:
             report = get_performance_report()
-            print(f"\n{Fore.GREEN}📊 PERFORMANCE REPORT{Style.RESET_ALL}")
-            print(f"{Fore.CYAN}{'='*50}{Style.RESET_ALL}")
-            print(json.dumps(report, indent=2))
+            
+            # Generate and save detailed report in requested format
+            report_format = getattr(args, 'performance_format', 'txt')
+            report_path = performance_logger.save_performance_report(report_format, 24)
+            
+            if report_format == 'txt':
+                # Display detailed performance summary for text format
+                print(f"\n{Fore.GREEN}📊 DETAILED PERFORMANCE REPORT{Style.RESET_ALL}")
+                print(f"{Fore.CYAN}{'='*60}{Style.RESET_ALL}")
+                
+                detailed = report.get('detailed_performance', {})
+                if detailed and 'performance_metrics' in detailed:
+                    metrics = detailed['performance_metrics']
+                    print(f"\n{Fore.YELLOW}🎯 OPERATION PERFORMANCE (Last 24h):{Style.RESET_ALL}")
+                    print(f"   Total Events: {detailed.get('total_events', 0)}")
+                    print(f"   Completed Operations: {detailed.get('completed_operations', 0)}")
+                    print(f"   Success Rate: {detailed.get('success_rate', 0)}%")
+                    print(f"   Average Duration: {metrics.get('avg_duration_seconds', 0):.2f}s")
+                    print(f"   Max Duration: {metrics.get('max_duration_seconds', 0):.2f}s")
+                    print(f"   Average Memory Delta: {metrics.get('avg_memory_delta_mb', 0):.2f}MB")
+                    
+                    # Show by operation type
+                    by_operation = detailed.get('by_operation', {})
+                    if by_operation:
+                        print(f"\n{Fore.YELLOW}📋 BY OPERATION TYPE:{Style.RESET_ALL}")
+                        for op_type, stats in by_operation.items():
+                            print(f"   {op_type.upper()}: {stats['count']} ops, "
+                                  f"avg {stats['avg_duration']:.2f}s")
+                
+                # Show legacy metrics for compatibility
+                print(f"\n{Fore.CYAN}📈 LEGACY METRICS:{Style.RESET_ALL}")
+                legacy = report.get('legacy_metrics', {})
+                if legacy:
+                    print(json.dumps(legacy, indent=2))
+            
+            print(f"\n{Fore.GREEN}💾 Performance report ({report_format.upper()}) saved: {report_path}{Style.RESET_ALL}")
             return
 
         if args.cache_clear:
