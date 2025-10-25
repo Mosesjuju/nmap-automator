@@ -4,29 +4,9 @@
 
 A modern, robust, and extensible Python package for automated network scanning using Nmap and Masscan.
 
-## Features
-- Fast and flexible scanning with Nmap and Masscan
-- XML parsing and result extraction
-- Robust error handling and logging
-- Professional package structure
-- Zero known syntax, import, or runtime errors
+## License
 
-## Usage
-
-### Install Locally
-```
-pip install .
-```
-
-
-### Run as a Module
-```
-python -m nmap_automator <Ip addr>
-```
-
-
-### Scan Specific Ports
-```
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 python -m nmap_automator <Ip addr> -p 1-1000
 ```
 
