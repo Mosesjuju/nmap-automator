@@ -6,7 +6,7 @@ A modern, robust, and extensible Python package for automated network scanning u
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+[MIT License](LICENSE)
 python -m nmap_automator <Ip addr> -p 1-1000
 ```
 
