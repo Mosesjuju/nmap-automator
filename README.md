@@ -22,31 +22,15 @@
 
 ---
 
+
 ## 🌟 Revolutionary Features
 
-### 🧠 **Smart Caching System - NEW!**
-Next-generation intelligent caching with **911.6x performance improvement**:
-
-- **🚀 Adaptive TTL** - Intelligent cache expiration based on scan patterns
-- **🎯 Priority-Based Eviction** - Smart memory management with LRU + priority scoring  
-- **🔮 Predictive Caching** - Pre-loads likely scan targets based on usage patterns
-- **💾 Cross-Session Persistence** - Maintains cache across application restarts
-- **📊 Real-Time Analytics** - Performance monitoring with hit rate tracking
-- **⚖️ System-Adaptive** - Automatically adjusts cache size based on available memory
-
-### 🏗️ **Professional Architecture - NEW!**
-Clean, organized project structure with enterprise-grade organization:
-
-- **📁 Modular Directory Structure** - Separated core engines, tools, scripts, and configs
-- **🔧 Zero-Config Virtual Environment** - Auto-activating launcher with isolated dependencies
-- **📊 Centralized Logging** - Organized log management in dedicated directory
-- **🎯 Smart Result Organization** - Categorized outputs by scan type and timestamp
-- **📚 Comprehensive Documentation** - 14+ detailed guides and implementation docs
-
-### ⚡ **Speed Presets - Enhanced!**
-Revolutionary performance optimization with smart caching acceleration:
-
-- **⚡ Lightning (`--lightning`)** - Ultra-fast scan in ~1 second (now cached)
+- Fast and flexible scanning with Nmap and Masscan
+- XML parsing and result extraction
+- Robust error handling and logging
+- Professional project architecture and modular directory structure
+- Centralized logging and organized output management
+- Zero-configuration virtual environment setup
 
 # NMAP Automator v2.0 - Enhanced Edition
 
@@ -70,6 +54,7 @@ python core/nmap_automator_optimized.py scanme.nmap.org
 python core/nmap_automator_optimized.py scanme.nmap.org -p 1-1000
 ```
 
+
 ### Fast Scan (Top 100 ports)
 ```
 python core/nmap_automator_optimized.py scanme.nmap.org --scan-type "-F"
@@ -90,6 +75,13 @@ python core/nmap_automator_optimized.py scanme.nmap.org --outdir results
 python core/nmap_automator_optimized.py scanme.nmap.org --no-xml
 ```
 
+### Save and View Results as HTML
+After scanning, you will be prompted to save results as `.txt`, `.xml`, or `.html`. If you choose `.html`, you can view the file with:
+```
+xdg-open results/<target>.html
+```
+
+
 ## Arguments
 - `targets` (positional): Target hosts/networks to scan
 - `-p PORTS`: Ports to scan (e.g., 22, 80, 443 or 1-1000)
@@ -100,19 +92,18 @@ python core/nmap_automator_optimized.py scanme.nmap.org --no-xml
 - `--outdir OUTDIR`: Output directory (default: nmap_results)
 - `--no-xml`: Disable XML output
 
+
 ## Example Output
-- Results are saved in the specified output directory as `.txt` and `.xml` files.
+- Results are saved in the specified output directory as `.txt`, `.xml`, and `.html` files (if chosen).
 - Findings are logged to the console and include open ports, services, vulnerabilities, and CVEs (if detected).
 
-## Notes
-- The script does not support legacy options like `--lightning` or `--fast-scan`. Use `--scan-type "-F"` or `-p 1-1000` for fast scans.
-- Masscan must be installed and available in your PATH for masscan scans.
 
 ## Requirements
 - Python 3.7+
 - Nmap
 - (Optional) Masscan
 - (Optional) tqdm, colorama
+
 
 ## License
 MIT
