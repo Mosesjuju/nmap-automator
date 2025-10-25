@@ -47,207 +47,75 @@ Clean, organized project structure with enterprise-grade organization:
 Revolutionary performance optimization with smart caching acceleration:
 
 - **⚡ Lightning (`--lightning`)** - Ultra-fast scan in ~1 second (now cached)
-- **🚀 Fast Scan (`--fast-scan`)** - Comprehensive scan in ~30 seconds (cached results)  
-- **🌐 Web Quick (`--web-quick`)** - Web services discovery in ~30 seconds
-- **🥷 Stealth Fast (`--stealth-fast`)** - Fast but harder to detect in ~45 seconds
-- **📡 Discovery Only (`--discovery-only`)** - Live host detection in ~10 seconds
 
-### 🤖 **AI-Powered Analysis - Enhanced!**
-- **Grok AI Integration** - Advanced vulnerability analysis with xAI's Grok (cached results)
-- **OpenAI Support** - GPT-powered security insights with intelligent caching
-- **CVE Detection** - Automatic vulnerability identification (cached across sessions)
-- **Metasploit Suggestions** - AI-recommended exploitation frameworks
+# NMAP Automator v2.0 - Enhanced Edition
 
----
+A modern, robust, and extensible Python tool for automated network scanning using Nmap and Masscan.
 
-## 🚀 Quick Start
+## Features
+- Fast and flexible scanning with Nmap and Masscan
+- XML parsing and result extraction
+- Robust error handling and logging
+- Zero known syntax, import, or runtime errors
 
-### 🏃‍♂️ **Instant Setup & Execution**
-```bash
-# Navigate to SecureScout directory
-cd /home/kali/NMAP
+## Usage
 
-# Run SecureScout (auto-activates virtual environment + smart caching)
-./scripts/run_securescout.sh scanme.nmap.org --fast-scan
-
-# Test smart caching system (see 911.6x improvement)
-source .venv/bin/activate
-python tests/test_smart_cache.py
+### Basic Scan
+```
+python core/nmap_automator_optimized.py scanme.nmap.org
 ```
 
-### ⚡ **Smart Cache Enhanced Scanning**
-```bash
-# Lightning-fast scan with intelligent caching
-./scripts/run_securescout.sh 192.168.1.1 --lightning
-# First run: ~1 second, Cached run: ~0.001 seconds (911.6x faster!)
-
-# Fast network discovery with adaptive caching
-./scripts/run_securescout.sh 192.168.1.0/24 --fast-scan  
-# Repeated scans use cached results for massive speed improvement
-
-# Web services check with predictive caching
-./scripts/run_securescout.sh example.com --web-quick
-# Smart cache pre-loads related targets based on patterns
+### Scan Specific Ports
+```
+python core/nmap_automator_optimized.py scanme.nmap.org -p 1-1000
 ```
 
-### 🧠 **AI-Powered Analysis with Caching**
-```bash
-# Scan with Grok AI analysis (cached AI results)
-./scripts/run_securescout.sh 192.168.1.1 --lightning --grok-key YOUR_API_KEY
-# AI analysis results cached - no repeated API calls for same targets
-
-# OpenAI vulnerability assessment with smart caching
-./scripts/run_securescout.sh 10.0.0.1 --fast-scan --openai-key YOUR_API_KEY
-# Vulnerability data cached across sessions for faster re-assessment
+### Fast Scan (Top 100 ports)
+```
+python core/nmap_automator_optimized.py scanme.nmap.org --scan-type "-F"
 ```
 
-### 📊 **Performance Monitoring**
-```bash
-# View real-time cache performance
-tail -f logs/nmap_automator.log
-
-# Check cache analytics (hit rates, memory usage, entries)
-cat cache/cache_persistence.json | jq '.metadata'
-
-# Monitor smart cache in action
-./scripts/run_securescout.sh scanme.nmap.org --fast-scan --performance-report
+### Use Masscan for Discovery
+```
+python core/nmap_automator_optimized.py scanme.nmap.org --masscan
 ```
 
----
-
-## 🔧 Installation & Setup
-
-### 📦 **Zero-Configuration Setup**
-```bash
-# Clone SecureScout
-git clone [repository-url]
-cd NMAP
-
-# Auto-setup virtual environment and dependencies
-./scripts/run_securescout.sh --help
-# Virtual environment and dependencies automatically installed on first run!
+### Save Results to Custom Directory
+```
+python core/nmap_automator_optimized.py scanme.nmap.org --outdir results
 ```
 
-### 🔍 **Manual Setup (Optional)**
-```bash
-# Create virtual environment
-python3 -m venv .venv
-source .venv/bin/activate
-
-# Install optimized dependencies
-pip install -r requirements-fixed.txt
-
-# Verify smart caching system
-python tests/test_smart_cache.py
+### Disable XML Output
+```
+python core/nmap_automator_optimized.py scanme.nmap.org --no-xml
 ```
 
-### 🧪 **Verify Installation**
-```bash
-# Test smart caching performance
-./scripts/run_securescout.sh scanme.nmap.org --discovery-only
+## Arguments
+- `targets` (positional): Target hosts/networks to scan
+- `-p PORTS`: Ports to scan (e.g., 22, 80, 443 or 1-1000)
+- `--masscan`: Use masscan for fast port discovery
+- `--rate RATE`: Masscan packet rate (default: 1000)
+- `--scan-type SCAN_TYPE`: Nmap scan type (default: -sV)
+- `--extra-args EXTRA_ARGS`: Extra nmap arguments
+- `--outdir OUTDIR`: Output directory (default: nmap_results)
+- `--no-xml`: Disable XML output
 
-# Check cache analytics
-cat cache/cache_persistence.json | jq '.metadata.performance_stats'
+## Example Output
+- Results are saved in the specified output directory as `.txt` and `.xml` files.
+- Findings are logged to the console and include open ports, services, vulnerabilities, and CVEs (if detected).
 
-# View comprehensive logs
-tail -f logs/nmap_automator.log
-```
+## Notes
+- The script does not support legacy options like `--lightning` or `--fast-scan`. Use `--scan-type "-F"` or `-p 1-1000` for fast scans.
+- Masscan must be installed and available in your PATH for masscan scans.
 
----
+## Requirements
+- Python 3.7+
+- Nmap
+- (Optional) Masscan
+- (Optional) tqdm, colorama
 
-## 🎯 Usage Examples
-
-### 🔄 **Demonstrating Smart Cache Benefits**
-```bash
-# First run - baseline performance
-time ./scripts/run_securescout.sh scanme.nmap.org --fast-scan
-
-# Second run - see 911.6x improvement from cache
-time ./scripts/run_securescout.sh scanme.nmap.org --fast-scan
-# Watch for "🧠 Smart Caching System Active" message!
-```
-
-### 🚀 **Advanced Scanning with Caching**
-```bash
-# Comprehensive network assessment with smart caching
-./scripts/run_securescout.sh 192.168.1.0/24 --fast-scan --performance-report
-
-# AI-powered vulnerability assessment (cached results)
-./scripts/run_securescout.sh target.com --lightning --grok-key $GROK_API_KEY
-
-# Multi-target scanning with predictive caching
-./scripts/run_securescout.sh @targets.txt --web-quick --tools-config config/tools.json
-```
-
-### 📈 **Performance Monitoring & Analytics**
-```bash
-# Monitor cache performance in real-time
-watch -n 1 'cat cache/cache_persistence.json | jq ".metadata.performance_stats"'
-
-# View detailed performance logs
-grep "Cache Performance" logs/nmap_automator.log | tail -10
-
-# Test smart caching features
-python tests/test_smart_cache.py --verbose
-```
-
----
-
-## 📚 Advanced Features
-
-### 🔗 **Enhanced Tool Integration**
-- **15+ Security Tools** with cached results for faster re-assessment
-- **Smart Tool Chaining** based on cached service discovery
-- **Burp Suite Integration** with cached vulnerability scan results
-- **AI Analysis Caching** prevents redundant API calls
-
-### 🛡️ **Intelligent Evasion & Stealth**
-- **Cached Evasion Profiles** for consistent stealth techniques
-- **Adaptive Timing** based on historical performance data
-- **Smart Decoy Management** with cached successful patterns
-
-### 📅 **Advanced Automation**
-- **Cross-Session Scheduling** with persistent cache state
-- **Predictive Target Loading** based on usage patterns
-- **Memory-Adaptive Processing** scales with system resources
-
----
-
-## 🏆 Key Improvements in v2.0
-
-### ✅ **Resolved Issues**
-- ✅ **All 12 Import/Dependency Errors** - Virtual environment with optimized packages
-- ✅ **Performance Bottlenecks** - 911.6x improvement through smart caching
-- ✅ **Disorganized Structure** - Professional directory organization
-- ✅ **Manual Environment Management** - Auto-activating launcher scripts
-
-### 🆕 **New Capabilities**
-- 🆕 **Intelligent Caching System** - Adaptive TTL, priority eviction, predictive loading
-- 🆕 **Cross-Session Persistence** - Cache maintains state across application restarts
-- 🆕 **Real-Time Analytics** - Performance monitoring with detailed metrics
-- 🆕 **System-Adaptive Configuration** - Automatically adjusts to available resources
-- 🆕 **Zero-Config Execution** - Professional launcher with virtual environment automation
-
-### 📊 **Performance Metrics**
-- **911.6x Performance Improvement** on repeated scans
-- **Adaptive Memory Management** (1K-5K cache entries based on system)
-- **Cross-Session Persistence** (70+ cache entries maintained)
-- **Real-Time Hit Rate Tracking** with comprehensive analytics
-
----
-
-## 📖 Documentation
-
-### 📚 **Comprehensive Guides**
-- **[Smart Caching Guide](SMART_CACHING_GUIDE.md)** - Complete caching system documentation
-- **[Implementation Details](SMART_CACHE_IMPLEMENTATION.md)** - Technical implementation guide  
-- **[Directory Structure](DIRECTORY_STRUCTURE.md)** - Project organization documentation
-- **[Debug Resolution](DEBUG_RESOLUTION_REPORT.md)** - Complete problem resolution report
-
-### 🛠️ **Technical Documentation**
-- **[Performance Optimization](tools/performance_optimizer.py)** - Smart caching implementation
-- **[Test Coverage](tests/)** - Comprehensive test suites
-- **[Configuration Examples](config/)** - Sample configurations
+## License
+MIT
 
 ---
 
