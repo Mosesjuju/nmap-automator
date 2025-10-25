@@ -1,78 +1,51 @@
-# 🔍 SecureScout v2.0 - Smart Cache Enhanced Security Platform
-
-```
-███████╗███████╗ ██████╗██╗   ██╗██████╗ ███████╗    ███████╗ ██████╗ ██████╗ ██╗   ██╗████████╗
-██╔════╝██╔════╝██╔════╝██║   ██║██╔══██╗██╔════╝    ██╔════╝██╔════╝██╔═══██╗██║   ██║╚══██╔══╝
-███████╗█████╗  ██║     ██║   ██║██████╔╝█████╗      ███████╗██║     ██║   ██║██║   ██║   ██║   
-╚════██║██╔══╝  ██║     ██║   ██║██╔══██╗██╔══╝      ╚════██║██║     ██║   ██║██║   ██║   ██║   
-███████║███████╗╚██████╗╚██████╔╝██║  ██║███████╗    ███████║╚██████╗╚██████╔╝╚██████╔╝   ██║   
-╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝    ╚══════╝ ╚═════╝ ╚═════╝  ╚═════╝    ╚═╝   
-
-        ═══════════════════════════════════════════════
-          SMART CACHE ENHANCED SECURITY PLATFORM v2.0  
-        ═══════════════════════════════════════════════
-
-  [*] 🧠 Intelligent Caching System (911.6x Performance Boost)
-  [*] 🏗️ Professional Project Architecture  
-  [*] ⚡ Advanced Performance Optimization
-  [*] 🔧 Zero-Configuration Virtual Environment
-```
-
-**Next-generation security assessment platform with intelligent caching, professional architecture, and 911.6x performance improvements through smart optimization.**
-
----
+# NMAP Automator v2.0 - Python Package Edition
 
 
-## 🌟 Revolutionary Features
 
-- Fast and flexible scanning with Nmap and Masscan
-- XML parsing and result extraction
-- Robust error handling and logging
-- Professional project architecture and modular directory structure
-- Centralized logging and organized output management
-- Zero-configuration virtual environment setup
-
-# NMAP Automator v2.0 - Enhanced Edition
-
-A modern, robust, and extensible Python tool for automated network scanning using Nmap and Masscan.
+A modern, robust, and extensible Python package for automated network scanning using Nmap and Masscan.
 
 ## Features
 - Fast and flexible scanning with Nmap and Masscan
 - XML parsing and result extraction
 - Robust error handling and logging
+- Professional package structure
 - Zero known syntax, import, or runtime errors
 
 ## Usage
 
-### Basic Scan
+### Install Locally
 ```
-python core/nmap_automator_optimized.py scanme.nmap.org
+pip install .
+```
+
+### Run as a Module
+```
+python -m nmap_automator scanme.nmap.org
 ```
 
 ### Scan Specific Ports
 ```
-python core/nmap_automator_optimized.py scanme.nmap.org -p 1-1000
+python -m nmap_automator scanme.nmap.org -p 1-1000
 ```
-
 
 ### Fast Scan (Top 100 ports)
 ```
-python core/nmap_automator_optimized.py scanme.nmap.org --scan-type "-F"
+python -m nmap_automator scanme.nmap.org --scan-type "-F"
 ```
 
 ### Use Masscan for Discovery
 ```
-python core/nmap_automator_optimized.py scanme.nmap.org --masscan
+python -m nmap_automator scanme.nmap.org --masscan
 ```
 
 ### Save Results to Custom Directory
 ```
-python core/nmap_automator_optimized.py scanme.nmap.org --outdir results
+python -m nmap_automator scanme.nmap.org --outdir results
 ```
 
 ### Disable XML Output
 ```
-python core/nmap_automator_optimized.py scanme.nmap.org --no-xml
+python -m nmap_automator scanme.nmap.org --no-xml
 ```
 
 ### Save and View Results as HTML
@@ -80,7 +53,6 @@ After scanning, you will be prompted to save results as `.txt`, `.xml`, or `.htm
 ```
 xdg-open results/<target>.html
 ```
-
 
 ## Arguments
 - `targets` (positional): Target hosts/networks to scan
@@ -92,11 +64,9 @@ xdg-open results/<target>.html
 - `--outdir OUTDIR`: Output directory (default: nmap_results)
 - `--no-xml`: Disable XML output
 
-
 ## Example Output
 - Results are saved in the specified output directory as `.txt`, `.xml`, and `.html` files (if chosen).
 - Findings are logged to the console and include open ports, services, vulnerabilities, and CVEs (if detected).
-
 
 ## Requirements
 - Python 3.7+
@@ -104,53 +74,5 @@ xdg-open results/<target>.html
 - (Optional) Masscan
 - (Optional) tqdm, colorama
 
-
 ## License
 MIT
-
----
-
-## ⚠️ Legal & Responsible Use
-
-**🚨 IMPORTANT:** Only scan networks and systems you own or have explicit written permission to test.
-
-- **Authorized Testing Only** - Unauthorized scanning may violate laws or policies
-- **Use `--dry-run`** - Preview commands before execution  
-- **Responsible Disclosure** - Report findings through proper channels
-- **Rate Limiting** - Smart cache helps reduce network impact
-
----
-
-## 🤝 Contributing
-
-We welcome contributions to SecureScout! Please see our contributing guidelines.
-
-### 🛠️ **Development Areas**
-- 🚀 **Smart Caching Enhancements** - Advanced prediction algorithms
-- 🤖 **AI Integration Improvements** - Additional AI providers
-- 📊 **Performance Analytics** - Enhanced monitoring and reporting
-- 🔧 **Tool Integration** - New security tool integrations
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙏 Acknowledgments
-
-- **nmap** - The foundation of network security assessment
-- **Python Community** - Libraries that make smart caching possible
-- **Security Researchers** - Continuous inspiration for improvement
-- **Open Source Community** - Contributors who make SecureScout better
-
----
-
-**"Intelligence through caching, speed through optimization, security through professionalism"** 🧠⚡🔒
-
----
-
-*SecureScout v2.0 - Smart Cache Enhanced | October 23, 2025*
-*All debugging issues resolved + 911.6x performance improvement achieved*

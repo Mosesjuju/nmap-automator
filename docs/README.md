@@ -1,3 +1,63 @@
+# NMAP Automator v2.0 - Enhanced Edition
+
+A modern, robust, and extensible Python tool for automated network scanning using Nmap and Masscan.
+## Features
+- Fast and flexible scanning with Nmap and Masscan
+- XML parsing and result extraction
+- Robust error handling and logging
+## Usage
+
+### Basic Scan
+```
+python core/nmap_automator_optimized.py scanme.nmap.org
+```
+### Scan Specific Ports
+```
+python core/nmap_automator_optimized.py scanme.nmap.org -p 1-1000
+```
+### Fast Scan (Top 100 ports)
+```
+python core/nmap_automator_optimized.py scanme.nmap.org --scan-type "-F"
+```
+### Use Masscan for Discovery
+```
+python core/nmap_automator_optimized.py scanme.nmap.org --masscan
+```
+### Save Results to Custom Directory
+```
+python core/nmap_automator_optimized.py scanme.nmap.org --outdir results
+```
+### Disable XML Output
+```
+python core/nmap_automator_optimized.py scanme.nmap.org --no-xml
+```
+### Save and View Results as HTML
+After scanning, you will be prompted to save results as `.txt`, `.xml`, or `.html`. If you choose `.html`, you can view the file with:
+```
+xdg-open results/<target>.html
+```
+## Arguments
+- `targets` (positional): Target hosts/networks to scan
+- `-p PORTS`: Ports to scan (e.g., 22, 80, 443 or 1-1000)
+- `--masscan`: Use masscan for fast port discovery
+- `--rate RATE`: Masscan packet rate (default: 1000)
+- `--scan-type SCAN_TYPE`: Nmap scan type (default: -sV)
+- `--extra-args EXTRA_ARGS`: Extra nmap arguments
+- `--outdir OUTDIR`: Output directory (default: nmap_results)
+- `--no-xml`: Disable XML output
+
+## Example Output
+- Results are saved in the specified output directory as `.txt`, `.xml`, and `.html` files (if chosen).
+- Findings are logged to the console and include open ports, services, vulnerabilities, and CVEs (if detected).
+
+## Requirements
+- Python 3.7+
+- Nmap
+- (Optional) Masscan
+- (Optional) tqdm, colorama
+
+## License
+MIT
 # �️ SecureScout v1.3.0 - Professional Cloud Security Platform
 
 ```

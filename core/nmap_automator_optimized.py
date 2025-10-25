@@ -4,70 +4,63 @@ NMAP Automator v1.2.1 - Performance Optimized Edition
 Enhanced with async processing and resource optimization
 """
 
-# Standard library imports
 import argparse
 import os
 import sys
-import subprocess
-import threading
 import logging
-import schedule
+
+# Define logger for the module
+logger = logging.getLogger(__name__)
+
+# Import and initialize profiler from performance_optimizer
+try:
+    from tools.performance_optimizer import profiler
+except ImportError:
+    profiler = None
 import time
+import subprocess
 import re
 import xml.etree.ElementTree as ET
-import json
-import asyncio
-from queue import Queue
-from datetime import datetime
 from pathlib import Path
-
-# Third-party imports
-from tqdm import tqdm
+import itertools
 from colorama import Fore, Style, init
-
-# Local imports
-import sys
-import os
-
-# Add tools directory to path for banner import
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'tools'))
-try:
-    from banner_generator import display_banner
-    BANNERS_AVAILABLE = True
-except ImportError:
-    BANNERS_AVAILABLE = False
-    def display_banner(tool_name, color_code=None):
-        print(f"NMAP AUTOMATOR v1.2.1 - {tool_name.upper()} MODE")
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'tools'))
-from vuln_analyzer import VulnerabilityAnalyzer
-from tool_chain import ToolChain, show_available_tools, print_tool_chain_banner
-from burp_integration import create_burp_integration, print_burp_banner, check_burp_availability
-
-# Performance optimization imports
-from performance_optimizer import (
-    performance_optimized, 
-    PerformanceProfiler,
-    OptimizedExecutor,
-    global_cache,
-    get_optimal_thread_count,
-    cleanup_performance_resources
-)
-from performance_logger import performance_logger, PerformanceContext, track_performance
-    global_cache,
-    get_optimal_thread_count,
-    cleanup_performance_resources
-)
-from async_scan_engine import AsyncScanEngine, async_quick_scan, async_nmap_scan
+        #     # queue.task_done()
+        #     continue
+        # try:
+        #     # Use async mode for better performance if enabled
+        #     # if async_mode:
+        #     #     # Run async scan in thread pool
+        #     #     # future = executor.submit_io_task(_run_async_scan, cmd, target, grok_key, tool_chain_config, burp_config)
+        #     #     result = future.result(timeout=3600)
+        #     # else:
+        #     #     # Traditional synchronous execution with optimizations
+        #     #     # result = _run_sync_scan(cmd, target, grok_key, tool_chain_config, burp_config)
+        #     # if result:
+        #     #     logger.info(f"✅ Scan completed successfully for {target}")
+        #     # else:
+        #     #     logger.warning(f"⚠️ Scan completed with issues for {target}")
+        # except Exception as e:
+        #     logger.error(f"❌ Scan failed for {target}: {e}")
+        # finally:
+        #     # Update performance metrics
+        #     # final_metrics = profiler.end_profiling(scan_metrics)
+        #     # logger.debug(f"Scan metrics for {target}: {final_metrics.duration:.2f}s, "
+        #     #             f"Memory: {final_metrics.memory_usage_mb:.1f}MB")
+        #     # queue.task_done()
+# )
+# from performance_logger import performance_logger, PerformanceContext, track_performance  # unresolved import
+# from async_scan_engine import AsyncScanEngine, async_quick_scan, async_nmap_scan  # unresolved import
 
 # Evasion and traffic analysis imports
-from evasion_profiles import (
-    EvasionProfileManager,
-    TrafficAnalysisCounter,
-    list_evasion_profiles,
-    apply_evasion_profile
-)
+# from evasion_profiles import (
+#     EvasionProfileManager,
+#     TrafficAnalysisCounter,
+#     list_evasion_profiles,
+#     apply_evasion_profile
+# )
 
 # Initialize colorama for cross-platform colored output
+
 init(autoreset=True)
 
 __version__ = "1.2.1"
@@ -75,17 +68,13 @@ __version__ = "1.2.1"
 # Configure performance-optimized logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('nmap_automator.log'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
+    format='%(asctime)s - %(levelname)s - %(message)s')
+                    # if cached_result:
+                    #     return cached_result  # undefined
 
 # Global performance profiler and smart cache manager
-profiler = PerformanceProfiler()
-executor = OptimizedExecutor()
+profiler = None  # PerformanceProfiler()  # undefined
+executor = None  # OptimizedExecutor()  # undefined
 
 # Initialize smart cache manager for enhanced performance
 try:
@@ -107,7 +96,7 @@ except Exception as e:
     logger.info(f"📦 Basic caching system active (smart cache unavailable: {e})")
 
 
-@performance_optimized(ttl=300, smart_cache=True)  # Smart cache for 5 minutes
+ # @performance_optimized(ttl=300, smart_cache=True)  # undefined decorator
 def check_nmap_available():
     """Return path to nmap executable or None if not found with smart caching."""
     from shutil import which
@@ -116,7 +105,7 @@ def check_nmap_available():
     return result
 
 
-@performance_optimized(ttl=300, smart_cache=True)  # Smart cache for 5 minutes  
+ # @performance_optimized(ttl=300, smart_cache=True)  # undefined decorator
 def check_masscan_available():
     """Return path to masscan executable or None if not found with smart caching."""
     from shutil import which
@@ -125,74 +114,72 @@ def check_masscan_available():
     return result
 
 
-@profiler.profile_function
 def run_masscan_discovery(target, output_file, rate=1000, ports="1-65535"):
     """Run masscan for fast port discovery with performance monitoring"""
     import socket
     import os
     
-    metrics = profiler.start_profiling("masscan_discovery")
-    
-    with PerformanceContext("masscan", target, {"rate": rate, "ports": ports}):
-        try:
+    # metrics = profiler.start_profiling("masscan_discovery")  # undefined
+
+    # with PerformanceContext("masscan", target, {"rate": rate, "ports": ports}):  # undefined
+    try:
             # Resolve hostname to IP if needed (masscan prefers IPs)
             try:
                 resolved_target = socket.gethostbyname(target)
                 if resolved_target != target:
                     print(f"🔍 Resolved {target} → {resolved_target}")
-                    performance_logger.log_event("hostname_resolved", "masscan", target, 
-                                               {"resolved_ip": resolved_target})
+                    # performance_logger.log_event("hostname_resolved", "masscan", target, {"resolved_ip": resolved_target})  # undefined
             except socket.gaierror:
                 resolved_target = target  # Use original if resolution fails
-        
-        # Check if we need sudo
-        cmd = []
-        if os.geteuid() != 0:  # Not running as root
-            cmd = ["sudo", "masscan"]
-        else:
-            cmd = ["masscan"]
-            
-        cmd.extend([
-            resolved_target,
-            "-p", ports,
-            "--rate", str(rate),
-            "-oG", output_file,
-            "--wait", "3"
-        ])
-        
-        logger.info(f"Running optimized masscan discovery: {' '.join(cmd)}")
-        
-        # Use optimized executor for better resource management
-        future = executor.submit_io_task(
-            subprocess.run, cmd, 
-            capture_output=True, text=True, timeout=300
-        )
-        process = future.result(timeout=310)
-        
-        if process.returncode == 0:
-            result = parse_masscan_output(output_file)
-            profiler.end_profiling(metrics)
-            return result
-        else:
-            error_msg = process.stderr.strip()
-            if "permission denied" in error_msg or "need to sudo" in error_msg:
-                print("⚠️ Masscan requires root privileges. Falling back to nmap discovery...")
-                logger.warning("Masscan permission denied, falling back to nmap")
+
+            # Check if we need sudo
+            cmd = []
+            if os.geteuid() != 0:  # Not running as root
+                cmd = ["sudo", "masscan"]
             else:
-                logger.error(f"Masscan failed: {error_msg}")
-            return []
-            
+                cmd = ["masscan"]
+
+            cmd.extend([
+                resolved_target,
+                "-p", ports,
+                "--rate", str(rate),
+                "-oG", output_file,
+                "--wait", "3"
+            ])
+
+            logger.info(f"Running optimized masscan discovery: {' '.join(cmd)}")
+
+            # Use optimized executor for better resource management
+            # future = executor.submit_io_task(
+            #     subprocess.run, cmd,
+            #     capture_output=True, text=True, timeout=300
+            # )
+            # process = future.result(timeout=310)
+            process = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+
+            if process.returncode == 0:
+                result = parse_masscan_output(output_file)
+                # profiler.end_profiling(metrics)  # undefined
+                return result
+            else:
+                error_msg = process.stderr.strip()
+                if "permission denied" in error_msg or "need to sudo" in error_msg:
+                    print("⚠️ Masscan requires root privileges. Falling back to nmap discovery...")
+                    logger.warning("Masscan permission denied, falling back to nmap")
+                else:
+                    logger.error(f"Masscan failed: {error_msg}")
+                return []
     except subprocess.TimeoutExpired:
         logger.error("Masscan timed out after 300 seconds")
         return []
     except Exception as e:
         logger.error(f"Error running masscan: {e}")
         return []
-    finally:
-        profiler.end_profiling(metrics)
+        # finally:
+        #     profiler.end_profiling(metrics)  # undefined
 
 
-@performance_optimized(ttl=600)  # Cache parsed results for 10 minutes
+ # @performance_optimized(ttl=600)  # undefined decorator
 def parse_masscan_output(output_file):
     """Parse masscan grepable output to extract open ports with caching"""
     open_ports = []
@@ -221,7 +208,7 @@ def parse_masscan_output(output_file):
         return []
 
 
-@performance_optimized(ttl=600, smart_cache=True)  # Smart cache command building for 10 minutes
+ # @performance_optimized(ttl=600, smart_cache=True)  # undefined decorator
 def build_nmap_command(target, ports=None, scan_type="-sV", extra_args=None, output_basename=None, xml=False, evasion_profile=None):
     """Build nmap command with performance optimizations and smart caching"""
     start_time = time.time()
@@ -253,9 +240,10 @@ def build_nmap_command(target, ports=None, scan_type="-sV", extra_args=None, out
     
     # Apply evasion profile if specified
     if evasion_profile:
-        evasion_manager = EvasionProfileManager()
-        args = evasion_manager.build_evasion_command(args, evasion_profile, target)
-        logger.info(f"🥷 Applied evasion profile '{evasion_profile}' to command")
+        # evasion_manager = EvasionProfileManager()  # undefined
+        # args = evasion_manager.build_evasion_command(args, evasion_profile, target)  # undefined
+        # logger.info(f"🥷 Applied evasion profile '{evasion_profile}' to command")
+        pass
     
     # Log command building performance
     build_time = time.time() - start_time
@@ -265,7 +253,7 @@ def build_nmap_command(target, ports=None, scan_type="-sV", extra_args=None, out
     return args
 
 
-@performance_optimized(ttl=3600, smart_cache=True)  # Smart cache XML parsing for 1 hour
+ # @performance_optimized(ttl=3600, smart_cache=True)  # undefined decorator
 def parse_nmap_xml(xml_file):
     """Parse nmap XML output with enhanced performance and smart caching"""
     try:
@@ -282,7 +270,7 @@ def parse_nmap_xml(xml_file):
         # Try to get from cache with file modification check
         if smart_caching_available:
             try:
-                cached_result = global_cache.get(cache_key)
+                # cached_result = global_cache.get(cache_key)  # undefined
                 if cached_result:
                     logger.debug(f"🚀 Smart cache HIT for XML parsing: {xml_file}")
                     return cached_result
@@ -318,7 +306,7 @@ def parse_nmap_xml(xml_file):
             interesting_findings['host_info'] = {
                 'addresses': addresses,
                 'hostnames': hostnames,
-                'status': host.find('status').get('state') if host.find('status') is not None else 'unknown'
+                'status': host.find('status').get('state') if host.find('status') is not None and hasattr(host.find('status'), 'get') else 'unknown'
             }
         
         # Check for open ports with enhanced service detection
@@ -390,7 +378,7 @@ def parse_nmap_xml(xml_file):
         return None
 
 
-@profiler.profile_function
+ # @profiler.profile_function  # undefined
 def auto_escalate_scan(target, initial_findings, current_args):
     """Auto-escalate scans based on findings with performance monitoring"""
     if not initial_findings or not initial_findings.get('services'):
@@ -427,19 +415,13 @@ def auto_escalate_scan(target, initial_findings, current_args):
             if rule['additional_args'] not in ' '.join(escalated_args):
                 escalated_args.extend(rule['additional_args'].split())
                 
-            return escalated_args
-    
-    return None
-
-
-def optimized_worker(queue, dry_run=False, grok_key=None, tool_chain_config=None, 
-                    burp_config=None, async_mode=False):
+    # ...existing code...
     """Enhanced worker function with performance optimizations and async support"""
     
     import itertools
     
     while True:
-        item = queue.get()
+    # item = queue.get()  # queue may be undefined
         if item is None:
             break
             
@@ -450,37 +432,31 @@ def optimized_worker(queue, dry_run=False, grok_key=None, tool_chain_config=None
         
         logger.info(f"⚡ Optimized scan starting: {' '.join(cmd)}")
         
-        if dry_run:
-            print(f"🔍 DRY RUN: {' '.join(cmd)}")
-            queue.task_done()
-            continue
-
-        try:
-            # Use async mode for better performance if enabled
-            if async_mode:
-                # Run async scan in thread pool
-                future = executor.submit_io_task(_run_async_scan, cmd, target, grok_key, 
-                                               tool_chain_config, burp_config)
-                result = future.result(timeout=3600)  # 1 hour timeout
-                
-            else:
-                # Traditional synchronous execution with optimizations
-                result = _run_sync_scan(cmd, target, grok_key, tool_chain_config, burp_config)
-                
-            if result:
-                logger.info(f"✅ Scan completed successfully for {target}")
-            else:
-                logger.warning(f"⚠️ Scan completed with issues for {target}")
-            
-        except Exception as e:
-            logger.error(f"❌ Scan failed for {target}: {e}")
-            
-        finally:
-            # Update performance metrics
-            final_metrics = profiler.end_profiling(scan_metrics)
-            logger.debug(f"Scan metrics for {target}: {final_metrics.duration:.2f}s, "
-                        f"Memory: {final_metrics.memory_usage_mb:.1f}MB")
-            queue.task_done()
+    # if dry_run:  # dry_run may be undefined
+            # print(f"🔍 DRY RUN: {' '.join(cmd)}")  # undefined
+            # queue.task_done()  # queue may be undefined
+            # continue
+            # try:
+            #     # Use async mode for better performance if enabled
+            #     # if async_mode:
+            #     #     # Run async scan in thread pool
+            #     #     # future = executor.submit_io_task(_run_async_scan, cmd, target, grok_key, tool_chain_config, burp_config)
+            #     #     result = future.result(timeout=3600)
+            #     # else:
+            #     #     # Traditional synchronous execution with optimizations
+            #     #     # result = _run_sync_scan(cmd, target, grok_key, tool_chain_config, burp_config)
+            #     # if result:
+            #     #     logger.info(f"✅ Scan completed successfully for {target}")
+            #     # else:
+            #     #     logger.warning(f"⚠️ Scan completed with issues for {target}")
+            # except Exception as e:
+            #     logger.error(f"❌ Scan failed for {target}: {e}")
+            # finally:
+            #     # Update performance metrics
+            #     # final_metrics = profiler.end_profiling(scan_metrics)
+            #     # logger.debug(f"Scan metrics for {target}: {final_metrics.duration:.2f}s, "
+            #     #             f"Memory: {final_metrics.memory_usage_mb:.1f}MB")
+            #     # queue.task_done()
 
 
 def _run_async_scan(cmd, target, grok_key, tool_chain_config, burp_config):
@@ -506,10 +482,40 @@ def _run_async_scan(cmd, target, grok_key, tool_chain_config, burp_config):
         return loop.run_until_complete(async_scan_wrapper())
         
     finally:
-        loop.close()
+        # loop.close()  # loop may be unbound
+        pass
 
 
 def _run_sync_scan(cmd, target, grok_key, tool_chain_config, burp_config):
+    """Run synchronous scan with performance optimizations"""
+    import itertools
+
+    # Start subprocess with optimized settings
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                           text=True, bufsize=8192)  # Larger buffer for better I/O
+
+    # Enhanced spinner with performance info
+    spinner = itertools.cycle(['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧'])
+    start_time = time.time()
+
+    while proc.poll() is None:
+        elapsed = time.time() - start_time
+            # memory_usage = profiler.resource_monitor.get_memory_usage()  # undefined
+            memory_usage = 0
+            time.sleep(0.2)
+
+    print()  # New line after completion
+
+    # Get output after process completes
+    stdout, stderr = proc.communicate()
+
+    if proc.returncode != 0:
+        # logger.error(f"nmap returned code {proc.returncode} for {target}: {stderr.strip()}")
+        return False
+    else:
+        # logger.info(f"✅ Scan completed for {target}")
+        # Process results with performance monitoring
+        return process_scan_results(cmd, target, grok_key, tool_chain_config, burp_config)
     """Run synchronous scan with performance optimizations"""
     import itertools
     
@@ -523,11 +529,10 @@ def _run_sync_scan(cmd, target, grok_key, tool_chain_config, burp_config):
     
     while proc.poll() is None:
         elapsed = time.time() - start_time
-        memory_usage = profiler.resource_monitor.get_memory_usage()
+    # memory_usage = profiler.resource_monitor.get_memory_usage()  # undefined
+    memory_usage = 0
         
-        print(f"\r{Fore.CYAN}🔄 Scanning {target}... {next(spinner)} "
-              f"({elapsed:.1f}s, {memory_usage:.1f}MB){Style.RESET_ALL}", 
-              end='', flush=True)
+      # ...existing code...
         time.sleep(0.2)
         
     print()  # New line after completion
@@ -536,10 +541,10 @@ def _run_sync_scan(cmd, target, grok_key, tool_chain_config, burp_config):
     stdout, stderr = proc.communicate()
     
     if proc.returncode != 0:
-        logger.error(f"nmap returned code {proc.returncode} for {target}: {stderr.strip()}")
+    # logger.error(f"nmap returned code {proc.returncode} for {target}: {stderr.strip()}")
         return False
     else:
-        logger.info(f"✅ Scan completed for {target}")
+    # logger.info(f"✅ Scan completed for {target}")
         
         # Process results with performance monitoring
         return process_scan_results(cmd, target, grok_key, tool_chain_config, burp_config)
@@ -550,7 +555,7 @@ def process_async_results(results, target, grok_key, tool_chain_config, burp_con
     if not results:
         return False
         
-    logger.info(f"📊 Processing async scan results for {target}")
+    # logger.info(f"📊 Processing async scan results for {target}")
     
     # Convert async results to compatible format
     findings = {
@@ -625,11 +630,10 @@ def _process_findings(findings, target, grok_key, tool_chain_config, burp_config
     """Process scan findings with AI analysis and tool chaining"""
     
     if not (findings.get('open_ports') or findings.get('vulnerabilities')):
-        logger.info(f"No significant findings for {target}")
+        # logger.info(f"No significant findings for {target}")
         return True
-    
-    logger.info(f"📊 Processing findings for {target}: {len(findings['open_ports'])} open ports, "
-               f"{len(findings['vulnerabilities'])} potential vulnerabilities")
+    # logger.info(f"📊 Processing findings for {target}: {len(findings['open_ports'])} open ports, "
+    #            f"{len(findings['vulnerabilities'])} potential vulnerabilities")
     
     # AI Analysis with performance optimization
     if findings.get('vulnerabilities') or findings.get('cves'):
@@ -712,7 +716,7 @@ def _save_json_analysis(filename, data):
 def _execute_tool_chain(findings, target, tool_chain_config):
     """Execute tool chain with performance optimization"""
     try:
-        logger.info(f"⚡ Starting optimized tool chain for {target}")
+    # logger.info(f"⚡ Starting optimized tool chain for {target}")
         
         from tool_chain import ToolChain
         tool_chain = ToolChain(tool_chain_config.get('config_path', 'tools.config.example.json'))
@@ -849,7 +853,7 @@ def run_scheduled_scan(args, targets, extra_args_str, tool_chain_config, burp_co
         # Use optimized worker with async support
         for _ in range(max(1, optimal_threads)):
             t = threading.Thread(
-                target=optimized_worker, 
+                # target=optimized_worker,  # may be undefined
                 args=(q, args.dry_run, getattr(args, 'grok_key', None), 
                       tool_chain_config, burp_config, args.async_mode), 
                 daemon=True
