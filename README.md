@@ -18,40 +18,47 @@ A modern, robust, and extensible Python package for automated network scanning u
 pip install .
 ```
 
+
 ### Run as a Module
 ```
-python -m nmap_automator scanme.nmap.org
+python -m nmap_automator <Ip addr>
 ```
+
 
 ### Scan Specific Ports
 ```
-python -m nmap_automator scanme.nmap.org -p 1-1000
+python -m nmap_automator <Ip addr> -p 1-1000
 ```
+
 
 ### Fast Scan (Top 100 ports)
 ```
-python -m nmap_automator scanme.nmap.org --scan-type "-F"
+python -m nmap_automator <Ip addr> --scan-type "-F"
 ```
+
 
 ### Use Masscan for Discovery
 ```
-python -m nmap_automator scanme.nmap.org --masscan
+python -m nmap_automator <Ip addr> --masscan
 ```
+
 
 ### Save Results to Custom Directory
 ```
-python -m nmap_automator scanme.nmap.org --outdir results
+python -m nmap_automator <Ip addr> --outdir results
 ```
+
 
 ### Disable XML Output
 ```
-python -m nmap_automator scanme.nmap.org --no-xml
+python -m nmap_automator <Ip addr> --no-xml
 ```
+
 
 ### Save and View Results as HTML
 After scanning, you will be prompted to save results as `.txt`, `.xml`, or `.html`. If you choose `.html`, you can view the file with:
 ```
-xdg-open results/<target>.html
+xdg-open results/<Ip addr>.html
 ```
 
 ## Arguments
