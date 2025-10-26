@@ -1,0 +1,1 @@
+# Nmap 7.95 scan initiated Sat Oct 25 17:52:27 2025 as: /usr/lib/nmap/nmap --privileged -sV -p 1-65535 -oN results/scanme.nmap.org.txt -oX results/scanme.nmap.org.xml scanme.nmap.org
