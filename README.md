@@ -11,25 +11,40 @@ Automated Nmap and Masscan scanning tool for efficient network reconnaissance.
 - Extensible and robust Python 3.7+ codebase
 - Advanced smart caching system for scan results
 
+
 ## Installation
 
+
 ```bash
-pip install .
+python3 -m pip install .
 ```
 Or, for development:
 ```bash
 git clone https://github.com/mosesjuju/nmap-automator.git
 cd nmap-automator
-pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```
+
+> **Note:** If you see errors about `python3-nmap` or other system packages, make sure your `requirements.txt` uses pip package names:
+> - Use `python-nmap` (not `python3-nmap`)
+> - Use `schedule` (not `python3-schedule`)
+
 
 
 ## Usage
 
-> **Note:** Masscan and Nmap require root privileges for full functionality. Use `sudo` when running scans:
+### Recommended: Run in a virtual environment
 
 ```bash
-sudo python -m nmap_automator <target_ip> [options]
+./run_in_venv.sh <target_ip> [options]
+```
+This script will set up a Python virtual environment, install dependencies, and run Nmap Automator.
+
+### Manual usage
+
+If you prefer manual setup, use:
+```bash
+sudo python3 -m nmap_automator <target_ip> [options]
 ```
 Replace `<target_ip>` with the IP address or hostname you want to scan.
 
