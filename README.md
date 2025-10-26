@@ -23,10 +23,13 @@ cd nmap-automator
 pip install -r requirements.txt
 ```
 
+
 ## Usage
 
+> **Note:** Masscan and Nmap require root privileges for full functionality. Use `sudo` when running scans:
+
 ```bash
-python -m nmap_automator <target_ip> [options]
+sudo python -m nmap_automator <target_ip> [options]
 ```
 Replace `<target_ip>` with the IP address or hostname you want to scan.
 
